@@ -10,13 +10,13 @@ namespace GXPEngine
     {
         public static float accx, accy, accz;
         public static float gyrox, gyroy, gyroz;
-        public static bool D4, D8;
+        public static bool[] D = new bool[20];
 
-        static public SerialPort port = new SerialPort();
+        public static SerialPort port = new SerialPort();
         public static void ConnectPort()
         {
             port.PortName = "COM7";
-            port.BaudRate = 115200;
+            port.BaudRate = 9600;
             port.RtsEnable = true;
             port.DtrEnable = true;
             port.Open();
@@ -24,27 +24,43 @@ namespace GXPEngine
         public static void ReadInput()
         {
             string line = port.ReadLine();
-            if (line != "start\r")
+
+            string[] input_buffer = line.Split(' ');
+
+            if (input_buffer[0] == "start")
             {
-                return;
+                if (!float.TryParse(input_buffer[1], out gyrox))
+                    Console.WriteLine("Couldn't read gyroscope data");
+                if (!float.TryParse(input_buffer[2], out gyroy))
+                    Console.WriteLine("Couldn't read gyroscope data");
+                if (!float.TryParse(input_buffer[3], out gyroz))
+                    Console.WriteLine("Couldn't read gyroscope data");
+
+                if (!float.TryParse(input_buffer[4], out accx))
+                    Console.WriteLine("Couldn't read accelleration data");
+                if (!float.TryParse(input_buffer[5], out accy))
+                    Console.WriteLine("Couldn't read accelleration data");
+                if (!float.TryParse(input_buffer[6], out accz))
+                    Console.WriteLine("Couldn't read accelleration data");
+
+                if (input_buffer[7] == "1")
+                    D[4] = true;
+                else
+                    D[4] = false;
+
+
+                if (input_buffer[8] == "1")
+                    D[7] = true;
+                else
+                    D[7] = false;
             }
-            gyrox = ReadFloat();
-            gyroy = ReadFloat();
-            gyroz = ReadFloat();
-
-            accx = ReadFloat();
-            accy = ReadFloat();
-            accz = ReadFloat();
-
-            D4 = ReadBool();
-            D8 = ReadBool();
 
             if (Console.KeyAvailable)
             {
                 ConsoleKeyInfo key = Console.ReadKey();
                 port.Write(key.KeyChar.ToString());  // writing a string to Arduino
             }
-            if (D8)
+            if (D[7])
                 PositionParser.angularDeviation = 0;
         }
 

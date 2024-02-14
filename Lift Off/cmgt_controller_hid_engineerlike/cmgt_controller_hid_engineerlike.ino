@@ -136,7 +136,7 @@ void setup() {
     
     set_all_pinmodes();
 
-    Serial.begin( 115200 );
+    Serial.begin( 9600 );
     Mouse.begin();
     // attempt to start the IMU:
     if (!IMU.begin()) {
@@ -208,19 +208,25 @@ void loop() {
     accy = accy_r - accy0;
     accz = accz_r - accz0;
 
-    Serial.println("start");
-    //Serial.println("Orientation: ");
-    Serial.println(yaw);
-    //Serial.print(",");
-    Serial.println(pitch);
-    //Serial.print(",");
-    Serial.println(roll);
-    Serial.println(accx);
-    Serial.println(accy);
-    Serial.println(accz);
+    Serial.print("start ");
+    Serial.print(yaw);
+    Serial.print(" ");
+    Serial.print(pitch);
+    Serial.print(" ");
+    Serial.print(roll);
+    Serial.print(" ");
 
-    Serial.println(digitalRead(4) == HIGH);
-    Serial.println(digitalRead(7) == HIGH);
+    Serial.print(accx);
+    Serial.print(" ");
+    Serial.print(accy);
+    Serial.print(" ");
+    Serial.print(accz);
+    Serial.print(" ");
+
+    Serial.print(digitalRead(4) == HIGH);
+    Serial.print(" ");
+    Serial.print(digitalRead(7) == HIGH);
+    Serial.println(" ");
   }
   
   // if (pitch < -20)

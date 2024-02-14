@@ -4,6 +4,7 @@ using System.Drawing;                           // System.Drawing contains drawi
 using GXPEngine.OpenGL;
 using GXPEngine.Core;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 public class MyGame : Game
 {
@@ -18,6 +19,7 @@ public class MyGame : Game
     public Vector2 cameraTarget;
     public Vector2 coinPrevPos;
     public float followSpeed = 0.05f;
+
 
     public MagicShape shape = new MagicShape(new Vector2[]
     {
@@ -34,6 +36,8 @@ public class MyGame : Game
         ArduinoTracker.ConnectPort();
 
         self = this;
+
+
         cam = new Camera(0, 0, resolutionX, resolutionY);
         coin = new AnimationSprite("Assets/Coins/coin.png", 5, 1);
         canvas = new EasyDraw(new Bitmap(resolutionX, resolutionY), false);
@@ -66,7 +70,9 @@ public class MyGame : Game
         PositionParser.angularDeviation += PositionParser.angularVelocityDeviation * Time.deltaTime;
         ArduinoTracker.ReadInput();
         PositionParser.GetData();
-        PositionParser.CalculateGravity();
+        PositionParser.UpdateCoordinates();
+        PositionParser.DetectMovement();
+
         playerForce.affectorPos = new Vector2(cam.x, cam.y);
         canvas.StrokeWeight(10);
         coin.Animate(0.05f);
@@ -79,18 +85,21 @@ public class MyGame : Game
         if (Input.GetKey(Key.S))
             cameraTarget.y += Time.deltaTime;
 
-        //cam.x = Mathf.Lerp(cam.x, cameraTarget.x, followSpeed);
-        //cam.y = Mathf.Lerp(cam.y, cameraTarget.y, followSpeed);
+        coin.x = PositionParser.position.x;
+        coin.y = PositionParser.position.y;
 
-        coin.x = -ArduinoTracker.gyroy*10;
-        coin.y = -ArduinoTracker.gyroz*15;
-
+        if (ArduinoTracker.D[7])
+        {
+            coin.x = 0;
+            coin.y = 0;
+            PositionParser.Calibrate();
+        }
         if (Input.GetKeyDown(Key.E))
         {
             coin.y = 0;
             coin.x = 0;
         }
-        if (ArduinoTracker.D4)
+        if (ArduinoTracker.D[4])
         {
             Vector2 p1 = canvas.InverseTransformPoint(coin.x,coin.y);
             Vector2 p2 = canvas.InverseTransformPoint(coinPrevPos.x, coinPrevPos.y);
@@ -117,6 +126,8 @@ public class MyGame : Game
             coin.color = 0xffffff;
         coinPrevPos = new Vector2(coin.x, coin.y);
     }
+
+
     static void Main()                          // Main() is the first method that's called when the program is run
     {
         new MyGame().Start();               // Create a "MyGame" and start it

@@ -47,6 +47,13 @@ namespace GXPEngine.Core
 			x = newx;
 			y = newy;
         }
+        public Vector2 Lerp(Vector2 end, float fac)
+        {
+			Vector2 res = new Vector2();
+			res.x = Mathf.Lerp(x, end.x, fac);
+			res.y = Mathf.Lerp(y, end.y, fac);
+			return res;
+        }
         public static Vector2 operator +(Vector2 v1, Vector2 v2) => new Vector2(v1.x + v2.x, v1.y + v2.y);
         public static Vector2 operator -(Vector2 v1, Vector2 v2) => new Vector2(v1.x - v2.x, v1.y - v2.y);
         public static Vector2 operator -(Vector2 v2) => new Vector2( - v2.x, - v2.y);
