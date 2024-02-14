@@ -1,0 +1,8 @@
+C:\Users\pchyo\Documents\!Saxion\GXP\GXPEngine2023c\Unnamed Jellyfish Game\GXPEngine\bin\Release\GXPEngine.exe
+C:\Users\pchyo\Documents\!Saxion\GXP\GXPEngine2023c\Unnamed Jellyfish Game\GXPEngine\obj\x86\Release\GXPEngine.csproj.AssemblyReference.cache
+C:\Users\pchyo\Documents\!Saxion\GXP\GXPEngine2023c\Unnamed Jellyfish Game\GXPEngine\obj\x86\Release\GXPEngine.csproj.CoreCompileInputs.cache
+C:\Users\pchyo\Documents\!Saxion\GXP\GXPEngine2023c\Unnamed Jellyfish Game\GXPEngine\obj\x86\Release\GXPEngine.exe
+C:\Users\pchyo\Documents\!Saxion\GXP\ShaderTest\Unnamed Jellyfish Game\GXPEngine\bin\Release\GXPEngine.exe
+C:\Users\pchyo\Documents\!Saxion\GXP\ShaderTest\Unnamed Jellyfish Game\GXPEngine\obj\x86\Release\GXPEngine.csproj.AssemblyReference.cache
+C:\Users\pchyo\Documents\!Saxion\GXP\ShaderTest\Unnamed Jellyfish Game\GXPEngine\obj\x86\Release\GXPEngine.csproj.CoreCompileInputs.cache
+C:\Users\pchyo\Documents\!Saxion\GXP\ShaderTest\Unnamed Jellyfish Game\GXPEngine\obj\x86\Release\GXPEngine.exe
