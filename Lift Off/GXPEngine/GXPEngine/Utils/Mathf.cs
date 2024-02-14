@@ -216,6 +216,25 @@ namespace GXPEngine
             f = (1 - Cos(f * PI)) / 2;
             return (max - min) * f + min;
         }
+
+		public static float Loop (float start, float end, float value)
+        {
+            float window = end - start;
+            if (value < end && value >= start)
+				return value;
+			else if (value >= end)
+			{
+				float dif = value - start;
+				value -= ((int)(dif / window)) * window;
+				return value;
+			}
+            else
+            {
+                float dif = end - value;
+                value += ((int)(dif / window)) * window;
+				return value;
+            }
+        }
     }
 }
 

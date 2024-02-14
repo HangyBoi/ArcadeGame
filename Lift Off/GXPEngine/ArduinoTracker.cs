@@ -10,7 +10,7 @@ namespace GXPEngine
     {
         public static float accx, accy, accz;
         public static float gyrox, gyroy, gyroz;
-        public static bool D4;
+        public static bool D4, D8;
 
         static public SerialPort port = new SerialPort();
         public static void ConnectPort()
@@ -37,12 +37,15 @@ namespace GXPEngine
             accz = ReadFloat();
 
             D4 = ReadBool();
-                
+            D8 = ReadBool();
+
             if (Console.KeyAvailable)
             {
                 ConsoleKeyInfo key = Console.ReadKey();
                 port.Write(key.KeyChar.ToString());  // writing a string to Arduino
             }
+            if (D8)
+                PositionParser.angularDeviation = 0;
         }
 
         public static float ReadFloat ()

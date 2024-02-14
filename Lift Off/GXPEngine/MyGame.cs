@@ -63,6 +63,7 @@ public class MyGame : Game
     }
     public override void Update()
     {
+        PositionParser.angularDeviation += PositionParser.angularVelocityDeviation * Time.deltaTime;
         ArduinoTracker.ReadInput();
         PositionParser.GetData();
         PositionParser.CalculateGravity();
