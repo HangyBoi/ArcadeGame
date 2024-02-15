@@ -27,6 +27,12 @@ public class MyGame : Game
         new Vector2(200,0),
         new Vector2(-200, 0),
         new Vector2(0,-300),
+    },
+    new direction[]
+    {
+        direction.UP_RIGHT, 
+        direction.LEFT, 
+        direction.UP_RIGHT,
     });
 
     public ParticleSystem.RadialForce playerForce = new ParticleSystem.RadialForce(new Vector2(0, 0));
@@ -60,8 +66,15 @@ public class MyGame : Game
         AddChild(canvas);
         AddChild(coin);
         coin.AddChild(ps);
+
+        PositionParser.OnPlayerInput += DisplayInput;
     }
 
+
+    public static void DisplayInput(direction dir)
+    {
+        Console.WriteLine(dir);
+    }
     public void UpdateFixed()
     {
     }
@@ -71,7 +84,8 @@ public class MyGame : Game
         ArduinoTracker.ReadInput();
         PositionParser.GetData();
         PositionParser.UpdateCoordinates();
-        PositionParser.DetectMovement();
+        //PositionParser.DetectMovement();
+        PositionParser.FilterMovement();
 
         playerForce.affectorPos = new Vector2(cam.x, cam.y);
         canvas.StrokeWeight(10);
@@ -101,32 +115,22 @@ public class MyGame : Game
         }
         if (ArduinoTracker.D[4])
         {
-            Vector2 p1 = canvas.InverseTransformPoint(coin.x,coin.y);
-            Vector2 p2 = canvas.InverseTransformPoint(coinPrevPos.x, coinPrevPos.y);
-            canvas.Line(p1.x, p1.y, p2.x, p2.y);
+            //Vector2 p1 = canvas.InverseTransformPoint(coin.x, coin.y);
+            //Vector2 p2 = canvas.InverseTransformPoint(coinPrevPos.x, coinPrevPos.y);
+            //canvas.Line(p1.x, p1.y, p2.x, p2.y);
             ps.enabled = true;
-            ps.startSpeed = (new Vector2(coin.x,coin.y) - coinPrevPos)*0.2f;
-
-            shape.CheckPoints(new Vector2(coin.x, coin.y));
-            if (shape.ShapeSDF(new Vector2(coin.x, coin.y))>MagicShape.precision)
-                shape.failed = true;    
+            ps.startSpeed = (new Vector2(coin.x, coin.y) - coinPrevPos) * 0.2f;
         }
         else
         {
-            shape.failed = false;
             shape.Reset();
             ps.enabled = false;
             canvas.ClearTransparent();
         }
 
         shape.Draw(canvas);
-        if (shape.ShapeSDF(new Vector2(coin.x, coin.y)) > MagicShape.precision)
-            coin.color = 0xff0000;
-        else
-            coin.color = 0xffffff;
         coinPrevPos = new Vector2(coin.x, coin.y);
     }
-
 
     static void Main()                          // Main() is the first method that's called when the program is run
     {

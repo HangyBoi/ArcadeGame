@@ -11,67 +11,84 @@ namespace GXPEngine
     {
         static public float precision = 100;
         private Vector2[] points;
+        private direction[] pattern;
         private bool[] activated;
-        public bool failed = false;
+        private bool reversed = false;
+        private int nextSegment;
+        public bool completed = false;
 
-        public MagicShape(Vector2[] points)
+        public MagicShape(Vector2[] points, direction[] pattern)
         {
+            if (points.Length != pattern.Length + 1)
+                throw new Exception("u gay");
             this.points = points;
+            this.pattern = pattern;
+            completed = false;
             this.activated = new bool[points.Length];
-            for (int i=0; i<points.Length; i++)
+            for (int i = 0; i < pattern.Length; i++)
                 activated[i] = false;
+            this.pattern = pattern;
+
+            PositionParser.OnPlayerInput += CheckSegment;
         }
-        public float ShapeSDF (Vector2 pos)
+        public void CheckSegment(direction dir)
         {
-            float min = 1000;
-            for (int i = 0; i < points.Count() - 1; i++)
+            if (completed) return;
+            if (!activated[pattern.Length - 1] && !activated[0])
             {
-                float segmentDistance = SDF.Line(pos, points[i], points[i + 1]);
-                if (segmentDistance < min)
-                    min = segmentDistance;
-            }
-            return min;
-        }
-        public float PointSDF(Vector2 pos, int i)
-        {
-            return (pos - points[i]).length();
-        }
-        public void CheckPoints(Vector2 pos)
-        {
-            for (int i = 0; i< points.Length; i++)
-            {
-                if (PointSDF(pos, i) < precision)
+                if (pattern[0] == dir)
                 {
-                    if (i == 0 || i == points.Length - 1)
-                    {
-                        if (i == 0)
-                            if (activated[1] || !activated[points.Length - 1])
-                                activated[0] = true;
-                        if (i == points.Length - 1)
-                            if (activated[points.Length - 2] || !activated[0])
-                                activated[points.Length - 1] = true;
-                    }
-                    else if (activated[i-1] || activated[i+1])
-                        activated[i] = true;
+                    nextSegment = 1;
+                    activated[0] = true;
+                }
+                if (pattern[pattern.Length - 1].Opposite() == dir)
+                {
+                    nextSegment = pattern.Length - 2;
+                    activated[pattern.Length - 1] = true;
+                    reversed = true;
                 }
             }
+            else
+            {
+                if (reversed)
+                {
+                    if (dir == pattern[nextSegment].Opposite())
+                    {
+                        activated[nextSegment] = true;
+                        nextSegment--;
+                        if (nextSegment == -1)
+                            completed = true;
+                    }
+                }
+                else if (dir == pattern[nextSegment])
+                {
+                    activated[nextSegment] = true;
+                    nextSegment++;
+                    if (nextSegment == pattern.Length)
+                        completed = true;
+                }
+            }
+            Console.WriteLine(nextSegment);
         }
         public void Reset()
         {
+            completed = false;
+            nextSegment = 0;
+            reversed = false;
             for (int i = 0; i < activated.Length; i++)
                 activated[i] = false;
         }
 
         public void Draw(EasyDraw canvas)
         {
-            for (int i = 0; i < points.Count() - 1; i++)
+            for (int i = 0; i < pattern.Length; i++)
             {
                 Vector2 p1 = canvas.InverseTransformPoint(points[i].x, points[i].y);
                 Vector2 p2 = canvas.InverseTransformPoint(points[i+1].x, points[i+1].y);
-                if (activated[i] && activated[i + 1])
+                if (activated[i])
                     canvas.Stroke(0, 255, 0);
-                if (failed)
-                    canvas.Stroke(255, 0, 0);
+                if (completed)
+                    canvas.Stroke(0, 255, 255);
                 canvas.Line(p1.x, p1.y, p2.x, p2.y);
                 canvas.Stroke(255,255,255);
             }

@@ -2,7 +2,9 @@
 using GXPEngine.Managers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.SymbolStore;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -19,14 +21,24 @@ namespace GXPEngine
         DOWN_RIGHT = 5, 
         DOWN = 6, 
         DOWN_LEFT = 7
+
+    }
+    public static class directionMethods
+    {
+        public static direction Opposite(this direction dir)
+        {
+            return (direction)(((int)dir + 4) % 8);
+        }
     }
     public static class PositionParser
     {
+        public delegate void PlayerInput(direction dir);
+        public static event PlayerInput OnPlayerInput;
         public static Vector2 velocity = new Vector2(0, 0);
         public static Vector2 acceleration = new Vector2(0, 0);
         public static Vector2 position = new Vector2(0, 0);
 
-        public static float sensitivity = 0.005f;
+        public static float sensitivity = 0.006f;
         public static float angularVelocityDeviation = 0.57f / 1000;
         public static float angularDeviation = 0.1f;
         public static Vector3 acc;
@@ -34,15 +46,18 @@ namespace GXPEngine
         public static Vector2 screenPos;
         public static Vector3 rot;
 
+        public static direction[] directionBuffer = new direction[5];
+
         public static direction DetectMovement()
         {
             float angle = position.angle(0);
             if (position.length() > 1/sensitivity)
             {
                 int dir = (int)((angle + 9*Mathf.PI/8) / Mathf.PI * 4) % 8;
-                Console.WriteLine((direction)dir);
+                //Console.WriteLine((direction)dir);
                 return (direction)dir;
             }
+            //Console.WriteLine(direction.NONE);
             return direction.NONE;
         }
 
@@ -50,7 +65,7 @@ namespace GXPEngine
         {
             acceleration = new Vector2(playerAcc.x, playerAcc.z);
             velocity += new Vector2(acceleration.x, acceleration.y) * Time.deltaTime * 100;
-            velocity = velocity.Lerp(new Vector2(0,0), 0.005f * Time.deltaTime);
+            velocity = velocity.Lerp(new Vector2(0,0), 0.003f * Time.deltaTime);
 
             //cam.x = Mathf.Lerp(cam.x, cameraTarget.x, followSpeed);
             //cam.y = Mathf.Lerp(cam.y, cameraTarget.y, followSpeed);
@@ -90,6 +105,42 @@ namespace GXPEngine
         }
         public static void Update()
         {
+        }
+        public static void FilterMovement ()
+        {
+            direction newDir = DetectMovement();
+
+            for (int i=1; i<directionBuffer.Length; i++)
+                directionBuffer[i - 1] = directionBuffer[i];
+
+            directionBuffer[4] = newDir;
+
+
+            if (newDir == direction.NONE)
+                return;
+
+            int count = 0;
+            for (int i = 0; i < directionBuffer.Length; i++)
+                if (directionBuffer[i] == newDir)
+                    count++;
+            if (count == directionBuffer.Length)
+                return;
+
+            int empty = 0;
+            int action = 0;
+
+            for (int i=0; i<directionBuffer.Length-1; i++)
+            {
+                if (directionBuffer[i] == direction.NONE || directionBuffer[i] == directionBuffer[4].Opposite())
+                    empty++;
+                if (directionBuffer[i] == directionBuffer[4])
+                    action++;
+            }
+
+            if (empty > 1)
+                return;
+            if (action == 3)
+                OnPlayerInput?.Invoke(directionBuffer[4]);
         }
     }
 }
