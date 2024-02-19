@@ -6,16 +6,31 @@ using System.Text;
 
 namespace GXPEngine
 {
+    public enum Method
+    {
+        GYRO,
+        NOGYRO
+    }
+    public enum ButtonStatus
+    {
+        RELEASED = 0,
+        ON_PRESS = 1,
+        PRESSED = 3,
+        ON_RELEASE = 2,
+    }
+
     public static class ArduinoTracker
     {
         public static float accx, accy, accz;
         public static float gyrox, gyroy, gyroz;
-        public static bool[] D = new bool[20];
+        public static int[] D = new int[20];
+        public static Method method;
 
         public static SerialPort port = new SerialPort();
+
         public static void ConnectPort()
         {
-            port.PortName = "COM7";
+            port.PortName = "COM12";
             port.BaudRate = 9600;
             port.RtsEnable = true;
             port.DtrEnable = true;
@@ -27,8 +42,13 @@ namespace GXPEngine
 
             string[] input_buffer = line.Split(' ');
 
-            if (input_buffer[0] == "start")
+            if (input_buffer[0] == "Gyro" || input_buffer[0] == "NoGyro")
             {
+                if (input_buffer[0] == "Gyro")
+                    method = Method.GYRO;
+                if (input_buffer[0] == "NoGyro")
+                    method = Method.NOGYRO;
+
                 if (!float.TryParse(input_buffer[1], out gyrox))
                     Console.WriteLine("Couldn't read gyroscope data");
                 if (!float.TryParse(input_buffer[2], out gyroy))
@@ -43,16 +63,9 @@ namespace GXPEngine
                 if (!float.TryParse(input_buffer[6], out accz))
                     Console.WriteLine("Couldn't read accelleration data");
 
-                if (input_buffer[7] == "1")
-                    D[4] = true;
-                else
-                    D[4] = false;
+                UpdateButtonStatus(4, input_buffer[7] == "1");
 
-
-                if (input_buffer[8] == "1")
-                    D[7] = true;
-                else
-                    D[7] = false;
+                UpdateButtonStatus(7, input_buffer[8] == "1");
             }
 
             if (Console.KeyAvailable)
@@ -60,7 +73,7 @@ namespace GXPEngine
                 ConsoleKeyInfo key = Console.ReadKey();
                 port.Write(key.KeyChar.ToString());  // writing a string to Arduino
             }
-            if (D[7])
+            if (D[7] == 3)
                 PositionParser.angularDeviation = 0;
         }
 
@@ -79,6 +92,15 @@ namespace GXPEngine
             if (line == "1\r")
                 return true;
             return false;
+        }
+        public static void UpdateButtonStatus (int index, bool value)
+        {
+            D[index] <<= 1;
+            D[index] %= 4;
+            if (value)
+                D[index] |= 1;
+
+            //Console.WriteLine((ButtonStatus)D[index]);
         }
     }
 }

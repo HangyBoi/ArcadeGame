@@ -68,6 +68,7 @@ public class MyGame : Game
         coin.AddChild(ps);
 
         PositionParser.OnPlayerInput += DisplayInput;
+        Calibrator.Setup();
     }
 
 
@@ -80,12 +81,14 @@ public class MyGame : Game
     }
     public override void Update()
     {
-        PositionParser.angularDeviation += PositionParser.angularVelocityDeviation * Time.deltaTime;
         ArduinoTracker.ReadInput();
+
+        PositionParser.angularDeviation += PositionParser.angularVelocityDeviation * Time.deltaTime;
         PositionParser.GetData();
         PositionParser.UpdateCoordinates();
-        //PositionParser.DetectMovement();
         PositionParser.FilterMovement();
+
+        Calibrator.Update();
 
         playerForce.affectorPos = new Vector2(cam.x, cam.y);
         canvas.StrokeWeight(10);
@@ -99,13 +102,17 @@ public class MyGame : Game
         if (Input.GetKey(Key.S))
             cameraTarget.y += Time.deltaTime;
 
+        //coin.x = PositionParser.playerAcc.z;
+        //coin.y = PositionParser.playerAcc.y;
+
+        //coin.x = PositionParser.playerAccLocal.z;
+        //coin.y = PositionParser.playerAccLocal.y;
+
         coin.x = PositionParser.position.x;
         coin.y = PositionParser.position.y;
 
-        if (ArduinoTracker.D[7])
+        if (ArduinoTracker.D[7] == 3)
         {
-            coin.x = 0;
-            coin.y = 0;
             PositionParser.Calibrate();
         }
         if (Input.GetKeyDown(Key.E))
@@ -113,7 +120,7 @@ public class MyGame : Game
             coin.y = 0;
             coin.x = 0;
         }
-        if (ArduinoTracker.D[4])
+        if (ArduinoTracker.D[4] == 3)
         {
             //Vector2 p1 = canvas.InverseTransformPoint(coin.x, coin.y);
             //Vector2 p2 = canvas.InverseTransformPoint(coinPrevPos.x, coinPrevPos.y);

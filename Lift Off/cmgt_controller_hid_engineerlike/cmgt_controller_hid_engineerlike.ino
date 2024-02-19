@@ -42,10 +42,10 @@ const int    FIRE1_BUTTON_PIN =  8;
 int PIN_MODES[] {
      ANALOG_INPUT,     // pin 00, TX
      ANALOG_INPUT,     // pin 01, RX
-    DIGITAL_INPUT,   // pin 02, joystick button
+    INPUT_PULLUP,   // pin 02, joystick button
     DIGITAL_INPUT,   // pin 03, left button
     DIGITAL_INPUT,   // pin 04, up button
-    DIGITAL_INPUT,   // pin 05, down button
+    INPUT_PULLUP,   // pin 05, down button
     DIGITAL_INPUT,   // pin 06, right button
     DIGITAL_INPUT,   // pin 07, fire 2 button
     DIGITAL_INPUT,   // pin 08, fire 1 button
@@ -87,6 +87,10 @@ float accx0 = 0.0;
 float accy0 = 0.0;
 float accz0 = 0.0;
 
+bool calibration = false;
+bool draw = false;
+int period = 1;
+int timer = 0;
 // ----------------
 // GLOBAL VARIABLES
 // ----------------
@@ -132,7 +136,7 @@ char button2character[MAX_PINS] = {
 }
 
 void setup() {
-    delay( 3000 );     // to make reprogramming etc. easier
+    ///delay( 3000 );     // to make reprogramming etc. easier
     
     set_all_pinmodes();
 
@@ -146,7 +150,7 @@ void setup() {
     }
   
     // start the filter to run at the sample rate of the IMU
-    filter.begin(IMU.accelerationSampleRate());
+    filter.begin(IMU.gyroscopeSampleRate());
 }
 
 
@@ -165,7 +169,8 @@ void loop() {
     //   Mouse.click();
     // else
     //   Mouse.release();
-    if (digitalRead(7) == HIGH)
+    if (!digitalRead(5) == HIGH)
+    //if (digitalRead(7) == HIGH)
     {
       yaw0 = yaw_r;
       pitch0 = pitch_r;
@@ -179,7 +184,7 @@ void loop() {
 
   float xAcc, yAcc, zAcc;
   float xGyro, yGyro, zGyro;
-
+  int mode = 1;
 
   // check if the IMU is ready to read:
   if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
@@ -192,6 +197,10 @@ void loop() {
     filter.updateIMU(xGyro, yGyro, zGyro, xAcc, yAcc, zAcc);
 
     // print the yaw (heading), pitch and roll
+
+    //yaw_r = xGyro;
+    //pitch_r = yGyro;
+    //roll_r = zGyro;
     yaw_r   = filter.getYaw();
     pitch_r = filter.getPitch();
     roll_r  = filter.getRoll();
@@ -204,29 +213,45 @@ void loop() {
     pitch = pitch_r - pitch0;
     roll = roll_r - roll0;
 
-    accx = accx_r - accx0;
-    accy = accy_r - accy0;
-    accz = accz_r - accz0;
+    accx = accx_r;// - accx0;
+    accy = accy_r;// - accy0;
+    accz = accz_r;// - accz0;
 
-    Serial.print("start ");
-    Serial.print(yaw);
-    Serial.print(" ");
-    Serial.print(pitch);
-    Serial.print(" ");
-    Serial.print(roll);
-    Serial.print(" ");
+    timer = 1;
+    if (timer == period)
+    {
+      if (mode == 0)
+        Serial.print("Gyro ");
+      if (mode == 1)
+        Serial.print("NoGyro ");
+      Serial.print(yaw);
+      Serial.print(" ");
+      Serial.print(pitch);
+      Serial.print(" ");
+      Serial.print(roll);
+      Serial.print(" ");
 
-    Serial.print(accx);
-    Serial.print(" ");
-    Serial.print(accy);
-    Serial.print(" ");
-    Serial.print(accz);
-    Serial.print(" ");
+      Serial.print(accx);
+      Serial.print(" ");
+      Serial.print(accy);
+      Serial.print(" ");
+      Serial.print(accz);
+      Serial.print(" ");
 
-    Serial.print(digitalRead(4) == HIGH);
-    Serial.print(" ");
-    Serial.print(digitalRead(7) == HIGH);
-    Serial.println(" ");
+      Serial.print(!digitalRead(2) == HIGH);
+      Serial.print(" ");
+      Serial.print(!digitalRead(5) == HIGH);
+      Serial.println(" ");
+      timer = 0;
+      
+
+    
+    //   Serial.print(digitalRead(4) == HIGH);
+    //   Serial.print(" ");
+    //   Serial.print(digitalRead(7) == HIGH);
+    //   Serial.println(" ");
+    }
+    
   }
   
   // if (pitch < -20)

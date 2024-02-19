@@ -16,10 +16,10 @@ namespace GXPEngine.Core
 			this.y = y;
             this.z = z;
         }
-		public Vector2 Normalized()
+		public Vector3 Normalized()
 		{
 			float len = Mathf.Sqrt(x * x + y * y + z * z);
-			return new Vector2(x/len, y/len);
+			return new Vector3(x/len, y/len, z/len);
 		}
         public float length()
         {

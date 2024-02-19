@@ -38,11 +38,12 @@ namespace GXPEngine
         public static Vector2 acceleration = new Vector2(0, 0);
         public static Vector2 position = new Vector2(0, 0);
 
-        public static float sensitivity = 0.006f;
+        public static float sensitivity = 0.005f;
         public static float angularVelocityDeviation = 0.57f / 1000;
         public static float angularDeviation = 0.1f;
         public static Vector3 acc;
         public static Vector3 playerAcc;
+        public static Vector3 playerAccLocal;
         public static Vector2 screenPos;
         public static Vector3 rot;
 
@@ -63,9 +64,13 @@ namespace GXPEngine
 
         public static Vector2 UpdateCoordinates ()
         {
-            acceleration = new Vector2(playerAcc.x, playerAcc.z);
+            if (ArduinoTracker.method == Method.GYRO)
+                acceleration = new Vector2(playerAcc.x, playerAcc.z);
+            if (ArduinoTracker.method == Method.NOGYRO)
+                acceleration = new Vector2(playerAccLocal.x, playerAccLocal.z);
+
             velocity += new Vector2(acceleration.x, acceleration.y) * Time.deltaTime * 100;
-            velocity = velocity.Lerp(new Vector2(0,0), 0.003f * Time.deltaTime);
+            velocity = velocity.Lerp(new Vector2(0,0), 0.005f * Time.deltaTime);
 
             //cam.x = Mathf.Lerp(cam.x, cameraTarget.x, followSpeed);
             //cam.y = Mathf.Lerp(cam.y, cameraTarget.y, followSpeed);
@@ -93,10 +98,19 @@ namespace GXPEngine
             rot.z = Mathf.Loop(-180, 180, rot.z);
 
             playerAcc = (acc).Rotate(rot * Mathf.DegToRad) - new Vector3(0, 0, 1);
+            if (rot.x < -90 || rot.x > 90)
+                rot.z = 180;
+            else
+                rot.z = 0;
+            playerAccLocal = acc - new Vector3(0, 0, 1).Rotate(-rot * Mathf.DegToRad);
 
+            //Console.WriteLine(new Vector3(0, 0, 1).Rotate(-rot * Mathf.DegToRad));
             //Console.WriteLine(acc);
             //Console.WriteLine(playerAcc);
+            //Console.WriteLine(playerAccLocal);
             //Console.WriteLine(rot);
+
+            //Console.WriteLine(Mathf.Loop(0, 1000, Time.time));
         }
         public static void Calibrate()
         {
