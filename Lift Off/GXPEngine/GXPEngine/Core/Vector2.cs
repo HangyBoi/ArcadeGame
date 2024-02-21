@@ -5,8 +5,10 @@ using System.Runtime.Remoting.Metadata.W3cXsd2001;
 namespace GXPEngine.Core
 {
 	public struct Vector2
-	{
-		public float x;
+    {
+        public static Vector2 zero = new Vector2(0, 0);
+
+        public float x;
 		public float y;
 		
 		public Vector2 (float x, float y)
@@ -53,6 +55,13 @@ namespace GXPEngine.Core
 			res.x = Mathf.Lerp(x, end.x, fac);
 			res.y = Mathf.Lerp(y, end.y, fac);
 			return res;
+        }
+
+        public Vector2 MatrixTransform(float[,] matrix)
+        {
+			if (matrix.GetLength(0) != 2 && matrix.GetLength(1) != 2)
+				throw new Exception("u need 2x2 matrix hahaha u had math issue");
+			return new Vector2(x * matrix[0,0] + y * matrix[0,1], x * matrix[1,0] + y * matrix[1,1]);
         }
         public static Vector2 operator +(Vector2 v1, Vector2 v2) => new Vector2(v1.x + v2.x, v1.y + v2.y);
         public static Vector2 operator -(Vector2 v1, Vector2 v2) => new Vector2(v1.x - v2.x, v1.y - v2.y);

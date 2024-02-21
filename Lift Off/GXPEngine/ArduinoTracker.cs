@@ -4,6 +4,8 @@ using System.IO.Ports;
 using System.Linq;
 using System.Text;
 
+//wjeohgirehfjopw[egph
+
 namespace GXPEngine
 {
     public enum Method
@@ -36,6 +38,7 @@ namespace GXPEngine
             port.DtrEnable = true;
             port.Open();
         }
+        //wfgjewhppjf[pkg]
         public static void ReadInput()
         {
             string line = port.ReadLine();
@@ -103,4 +106,5 @@ namespace GXPEngine
             //Console.WriteLine((ButtonStatus)D[index]);
         }
     }
+    //wpfjgeo[qwpetjpwj[
 }

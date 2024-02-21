@@ -16,6 +16,7 @@ public class MyGame : Game
     public AnimationSprite coin;
     public Camera cam;
     public EasyDraw canvas;
+    public Sprite test;
     public Vector2 cameraTarget;
     public Vector2 coinPrevPos;
     public float followSpeed = 0.05f;
@@ -37,17 +38,18 @@ public class MyGame : Game
 
     public ParticleSystem.RadialForce playerForce = new ParticleSystem.RadialForce(new Vector2(0, 0));
 
-    public MyGame() : base(resolutionX, resolutionY, false, pPixelArt: true, pVSync: true)     // Create a window that's 800x600 and NOT fullscreen
+    public MyGame() : base(resolutionX, resolutionY, false, pPixelArt: false, pVSync: true)     // Create a window that's 800x600 and NOT fullscreen
     {
         ArduinoTracker.ConnectPort();
 
         self = this;
-
-
         cam = new Camera(0, 0, resolutionX, resolutionY);
         coin = new AnimationSprite("Assets/Coins/coin.png", 5, 1);
         canvas = new EasyDraw(new Bitmap(resolutionX, resolutionY), false);
         canvas.SetXY(-resolutionX/2, -resolutionY/2);
+
+        test = new Sprite("Assets\\bush.jpg");
+        test.SetXY(-100,-100);
 
         ps = new ParticleSystem("Assets\\bubble.png", 0, 0, ParticleSystem.EmitterType.rect, ParticleSystem.Mode.force, this);
         //ps.forces.Add(playerForce);
@@ -65,10 +67,15 @@ public class MyGame : Game
         AddChild(cam);
         AddChild(canvas);
         AddChild(coin);
+        //AddChild(test);
         coin.AddChild(ps);
 
         PositionParser.OnPlayerInput += DisplayInput;
         Calibrator.Setup();
+
+        test.origin = new Vector2(0.5f, 0.5f);
+        Console.WriteLine(test.origin);
+
     }
 
 
@@ -83,6 +90,12 @@ public class MyGame : Game
     {
         ArduinoTracker.ReadInput();
 
+        float amp = (Mathf.Sin(Time.time / 430f + 128f)) * 0.03f;
+        float period = 200f;
+        test.transform = new float[,] {
+            { amp * Mathf.Sin(Time.time/period) + 1f , Mathf.Cos(Time.time/period) * amp},
+            { Mathf.Cos(Time.time/period) * amp, -amp * Mathf.Sin(Time.time/period) + 1f}
+        };
         PositionParser.angularDeviation += PositionParser.angularVelocityDeviation * Time.deltaTime;
         PositionParser.GetData();
         PositionParser.UpdateCoordinates();

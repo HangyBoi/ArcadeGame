@@ -11,8 +11,10 @@ namespace GXPEngine
 		protected Texture2D _texture;
 		protected Rectangle _bounds;
 		protected float[] _uvs;
-		
-		private uint _color = 0xFFFFFF;
+		protected float[,] _uvtransform = new float[,] { { 1, 0 }, { 0, 1 } };
+		protected Vector2 _origin = Vector2.zero;
+
+        private uint _color = 0xFFFFFF;
 		private float _alpha = 1.0f;
 		
 		protected bool _mirrorX = false;
@@ -117,6 +119,22 @@ namespace GXPEngine
             }
 		}
 
+        //------------------------------------------------------------------------------------------------------------------------
+        //														transformUVs
+        //------------------------------------------------------------------------------------------------------------------------
+        protected virtual float[] transformUVs()
+        {
+			float[] uv = new float[8];
+			for (int i = 0; i < 8; i+=2)
+			{
+                Vector2 point = new Vector2( _uvs[i], _uvs[i + 1]) - _origin;
+				point = point.MatrixTransform(_uvtransform);
+				uv[i] = point.x + _origin.x;
+				uv[i + 1] = point.y + _origin.y;
+			}
+			return uv;
+        }
+
         public float[] GetUVs(bool safe=true) {
 			if (safe) {
 				return (float[])_uvs.Clone();
@@ -177,10 +195,35 @@ namespace GXPEngine
 			}
 		}
 
-		//------------------------------------------------------------------------------------------------------------------------
-		//														RenderSelf()
-		//------------------------------------------------------------------------------------------------------------------------
-		override protected void RenderSelf(GLContext glContext) {
+        //------------------------------------------------------------------------------------------------------------------------
+        //														transform
+        //------------------------------------------------------------------------------------------------------------------------
+        /// <summary>
+        /// Gets or sets the sprite's uv transform.
+        /// </summary>
+        virtual public float[,] transform
+        {
+            get { return _uvtransform; }
+            set { _uvtransform = value; }
+        }
+
+
+        //------------------------------------------------------------------------------------------------------------------------
+        //												     transform origin
+        //------------------------------------------------------------------------------------------------------------------------
+        /// <summary>
+        /// Gets or sets the sprite's uv transform.
+        /// </summary>
+        virtual public Vector2 origin
+        {
+            get { return _origin; }
+			set { _origin = value; }
+        }
+
+        //------------------------------------------------------------------------------------------------------------------------
+        //														RenderSelf()
+        //------------------------------------------------------------------------------------------------------------------------
+        override protected void RenderSelf(GLContext glContext) {
 			if (game != null) {
 				Vector2[] bounds = GetExtents();
 				float maxX = float.MinValue;
@@ -201,8 +244,9 @@ namespace GXPEngine
 					                   (byte)((_color >> 8) & 0xFF), 
 					                   (byte)(_color & 0xFF), 
 					                   (byte)(_alpha * 0xFF));
-					glContext.DrawQuad(GetArea(), _uvs);
-					glContext.SetColor(255, 255, 255, 255);
+                    //glContext.DrawQuad(GetArea(), _uvs);
+                    glContext.DrawQuad(GetArea(), transformUVs());
+                    glContext.SetColor(255, 255, 255, 255);
 					_texture.Unbind();
 					if (blendMode != null) BlendMode.NORMAL.enable();
 				}

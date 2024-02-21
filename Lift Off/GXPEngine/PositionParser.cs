@@ -38,7 +38,9 @@ namespace GXPEngine
         public static Vector2 acceleration = new Vector2(0, 0);
         public static Vector2 position = new Vector2(0, 0);
 
-        public static float sensitivity = 0.005f;
+        public static float sensitivity = 0.004f;
+        public static float lerp = 0.002f;
+
         public static float angularVelocityDeviation = 0.57f / 1000;
         public static float angularDeviation = 0.1f;
         public static Vector3 acc;
@@ -70,7 +72,7 @@ namespace GXPEngine
                 acceleration = new Vector2(playerAccLocal.x, playerAccLocal.z);
 
             velocity += new Vector2(acceleration.x, acceleration.y) * Time.deltaTime * 100;
-            velocity = velocity.Lerp(new Vector2(0,0), 0.005f * Time.deltaTime);
+            velocity = velocity.Lerp(new Vector2(0,0), lerp * Time.deltaTime);
 
             //cam.x = Mathf.Lerp(cam.x, cameraTarget.x, followSpeed);
             //cam.y = Mathf.Lerp(cam.y, cameraTarget.y, followSpeed);
