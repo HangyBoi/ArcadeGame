@@ -32,7 +32,7 @@ namespace GXPEngine
 
         public static void ConnectPort()
         {
-            port.PortName = "COM16";
+            port.PortName = "COM12";
             port.BaudRate = 9600;
             port.RtsEnable = true;
             port.DtrEnable = true;
