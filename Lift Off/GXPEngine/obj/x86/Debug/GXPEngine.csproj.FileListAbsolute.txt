@@ -10,3 +10,10 @@ C:\Users\pchyo\Documents\GitHub\ArcadeGame\Lift Off\GXPEngine\obj\x86\Debug\GXPE
 C:\Users\pchyo\Documents\GitHub\ArcadeGame\Lift Off\GXPEngine\obj\x86\Debug\GXPEngine.csproj.CoreCompileInputs.cache
 C:\Users\pchyo\Documents\GitHub\ArcadeGame\Lift Off\GXPEngine\obj\x86\Debug\GXPEngine.exe
 C:\Users\pchyo\Documents\GitHub\ArcadeGame\Lift Off\GXPEngine\obj\x86\Debug\GXPEngine.pdb
+C:\Users\Nichita Cebotari\Desktop\Coding\ArcadeGame\ArcadeGame\Lift Off\GXPEngine\bin\Debug\GXPEngine.exe.config
+C:\Users\Nichita Cebotari\Desktop\Coding\ArcadeGame\ArcadeGame\Lift Off\GXPEngine\bin\Debug\GXPEngine.exe
+C:\Users\Nichita Cebotari\Desktop\Coding\ArcadeGame\ArcadeGame\Lift Off\GXPEngine\bin\Debug\GXPEngine.pdb
+C:\Users\Nichita Cebotari\Desktop\Coding\ArcadeGame\ArcadeGame\Lift Off\GXPEngine\obj\x86\Debug\GXPEngine.csproj.AssemblyReference.cache
+C:\Users\Nichita Cebotari\Desktop\Coding\ArcadeGame\ArcadeGame\Lift Off\GXPEngine\obj\x86\Debug\GXPEngine.csproj.CoreCompileInputs.cache
+C:\Users\Nichita Cebotari\Desktop\Coding\ArcadeGame\ArcadeGame\Lift Off\GXPEngine\obj\x86\Debug\GXPEngine.exe
+C:\Users\Nichita Cebotari\Desktop\Coding\ArcadeGame\ArcadeGame\Lift Off\GXPEngine\obj\x86\Debug\GXPEngine.pdb

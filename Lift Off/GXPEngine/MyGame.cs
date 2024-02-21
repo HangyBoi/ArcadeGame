@@ -20,6 +20,8 @@ public class MyGame : Game
     public Vector2 coinPrevPos;
     public float followSpeed = 0.05f;
 
+    //BRUUUUUUUUUH
+
 
     public MagicShape shape = new MagicShape(new Vector2[]
     {
@@ -37,7 +39,7 @@ public class MyGame : Game
 
     public ParticleSystem.RadialForce playerForce = new ParticleSystem.RadialForce(new Vector2(0, 0));
 
-    public MyGame() : base(resolutionX, resolutionY, false, pPixelArt: true, pVSync: true)     // Create a window that's 800x600 and NOT fullscreen
+    public MyGame() : base(resolutionX, resolutionY, false, pPixelArt: true)     // Create a window that's 800x600 and NOT fullscreen
     {
         ArduinoTracker.ConnectPort();
 
