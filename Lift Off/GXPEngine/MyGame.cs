@@ -21,6 +21,8 @@ public class MyGame : Game
     public Vector2 coinPrevPos;
     public float followSpeed = 0.05f;
 
+    //BRUUUUUUUUUH
+
 
     public MagicShape shape = new MagicShape(new Vector2[]
     {
