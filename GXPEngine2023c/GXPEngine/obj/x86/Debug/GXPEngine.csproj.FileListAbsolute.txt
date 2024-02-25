@@ -1,0 +1,7 @@
+C:\Users\Nichita Cebotari\Desktop\Coding\Draft\GXPEngine2023c\GXPEngine\bin\Debug\GXPEngine.exe.config
+C:\Users\Nichita Cebotari\Desktop\Coding\Draft\GXPEngine2023c\GXPEngine\bin\Debug\GXPEngine.exe
+C:\Users\Nichita Cebotari\Desktop\Coding\Draft\GXPEngine2023c\GXPEngine\bin\Debug\GXPEngine.pdb
+C:\Users\Nichita Cebotari\Desktop\Coding\Draft\GXPEngine2023c\GXPEngine\obj\x86\Debug\GXPEngine.csproj.AssemblyReference.cache
+C:\Users\Nichita Cebotari\Desktop\Coding\Draft\GXPEngine2023c\GXPEngine\obj\x86\Debug\GXPEngine.csproj.CoreCompileInputs.cache
+C:\Users\Nichita Cebotari\Desktop\Coding\Draft\GXPEngine2023c\GXPEngine\obj\x86\Debug\GXPEngine.exe
+C:\Users\Nichita Cebotari\Desktop\Coding\Draft\GXPEngine2023c\GXPEngine\obj\x86\Debug\GXPEngine.pdb
