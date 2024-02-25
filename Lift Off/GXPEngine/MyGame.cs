@@ -3,6 +3,7 @@ using GXPEngine;                                // GXPEngine contains the engine
 using System.Drawing;                           // System.Drawing contains drawing tools such as Color definitions
 using GXPEngine.OpenGL;
 using GXPEngine.Core;
+using GXPEngine.Animation;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -21,28 +22,14 @@ public class MyGame : Game
     public Vector2 coinPrevPos;
     public float followSpeed = 0.05f;
 
-    //BRUUUUUUUUUH
+    public BombEffect bombEffect;
 
-
-    public MagicShape shape = new MagicShape(new Vector2[]
-    {
-        new Vector2(0,300),
-        new Vector2(200,0),
-        new Vector2(-200, 0),
-        new Vector2(0,-300),
-    },
-    new direction[]
-    {
-        direction.UP_RIGHT, 
-        direction.LEFT, 
-        direction.UP_RIGHT,
-    });
 
     public ParticleSystem.RadialForce playerForce = new ParticleSystem.RadialForce(new Vector2(0, 0));
 
     public MyGame() : base(resolutionX, resolutionY, false, pPixelArt: false, pVSync: true)     // Create a window that's 800x600 and NOT fullscreen
     {
-        ArduinoTracker.ConnectPort();
+        //ArduinoTracker.ConnectPort();
 
         self = this;
         cam = new Camera(0, 0, resolutionX, resolutionY);
@@ -65,6 +52,7 @@ public class MyGame : Game
         //ps.startPosDelta = new Vector2(50, 50);
         ps.worldSpace = this;
         ps.startSpeedDelta = new Vector2(0.5f, 0.5f);
+        ps.enabled = false;
 
         AddChild(cam);
         AddChild(canvas);
@@ -73,15 +61,21 @@ public class MyGame : Game
         coin.AddChild(ps);
 
         PositionParser.OnPlayerInput += DisplayInput;
+        PositionParser.OnPlayerInput += MagicShape.AddStroke;
+
+        MagicShape.FillShapeList();
+        MagicShape.CastSpell += SpellEffect;
         Calibrator.Setup();
 
-        test.origin = new Vector2(0.5f, 0.5f);
-        Console.WriteLine(test.origin);
+        bombEffect = new BombEffect();
+
+        //test.origin = new Vector2(0.5f, 0.5f);
+        //Console.WriteLine(test.origin);
 
     }
 
 
-    public static void DisplayInput(direction dir)
+    public static void DisplayInput(Direction dir)
     {
         Console.WriteLine(dir);
     }
@@ -90,7 +84,7 @@ public class MyGame : Game
     }
     public override void Update()
     {
-        ArduinoTracker.ReadInput();
+        //ArduinoTracker.ReadInput();
 
         float amp = (Mathf.Sin(Time.time / 430f + 128f)) * 0.03f;
         float period = 200f;
@@ -117,6 +111,10 @@ public class MyGame : Game
         if (Input.GetKey(Key.S))
             cameraTarget.y += Time.deltaTime;
 
+        if (Input.GetKey(Key.E))
+            if (!bombEffect.isRunning)
+                bombEffect.StartAnimation();
+
         //coin.x = PositionParser.playerAcc.z;
         //coin.y = PositionParser.playerAcc.y;
 
@@ -140,20 +138,43 @@ public class MyGame : Game
             //Vector2 p1 = canvas.InverseTransformPoint(coin.x, coin.y);
             //Vector2 p2 = canvas.InverseTransformPoint(coinPrevPos.x, coinPrevPos.y);
             //canvas.Line(p1.x, p1.y, p2.x, p2.y);
-            ps.enabled = true;
+            //ps.enabled = true;
             ps.startSpeed = (new Vector2(coin.x, coin.y) - coinPrevPos) * 0.2f;
         }
-        else
+        if (ArduinoTracker.D[4] == 2)
         {
-            shape.Reset();
             ps.enabled = false;
             canvas.ClearTransparent();
+            MagicShape.SpellAttempt();
         }
 
-        shape.Draw(canvas);
         coinPrevPos = new Vector2(coin.x, coin.y);
     }
 
+    public void SpellEffect(Shape shape)
+    {
+        switch (shape)
+        {
+            case Shape.RED:
+                canvas.Clear(255, 0, 0, 50);
+                break;
+            case Shape.GREEN:
+                canvas.Clear(0, 255, 0, 50);
+                break;
+            case Shape.BLUE:
+                canvas.Clear(0, 0, 255, 50);
+                break;
+            case Shape.YELLOW:
+                canvas.Clear(255, 255, 0, 50);
+                break;
+            case Shape.LIGHTNING:
+                canvas.Clear(255, 255, 255, 50);
+                break;
+            case Shape.BOMB:
+                canvas.Clear(128, 0, 128, 50);
+                break;
+        }
+    }
     static void Main()                          // Main() is the first method that's called when the program is run
     {
         new MyGame().Start();               // Create a "MyGame" and start it

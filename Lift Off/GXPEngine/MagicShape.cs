@@ -1,96 +1,202 @@
 ﻿using GXPEngine.Core;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace GXPEngine
 {
-    public class MagicShape
+    public enum Shape
     {
-        static public float precision = 100;
-        private Vector2[] points;
-        private direction[] pattern;
-        private bool[] activated;
-        private bool reversed = false;
-        private int nextSegment;
-        public bool completed = false;
+        RED,
+        BLUE,
+        GREEN,
+        YELLOW,
 
-        public MagicShape(Vector2[] points, direction[] pattern)
-        {
-            if (points.Length != pattern.Length + 1)
-                throw new Exception("u gay");
-            this.points = points;
-            this.pattern = pattern;
-            completed = false;
-            this.activated = new bool[points.Length];
-            for (int i = 0; i < pattern.Length; i++)
-                activated[i] = false;
-            this.pattern = pattern;
+        LIGHTNING,
+        BOMB
+    }
+    public static class MagicShape
+    {
+        /* Symbols explained:
+         * 
+         * Q = up left
+         * W = up
+         * E = up right
+         * D = right
+         * C = down right
+         * X = down
+         * Z = down left
+         * A = left
+         * 
+         */
 
-            PositionParser.OnPlayerInput += CheckSegment;
-        }
-        public void CheckSegment(direction dir)
+
+        public static string playerInput = "";
+        public static Direction prevInput;
+
+        public delegate void Spell(Shape shape);
+        public static event Spell CastSpell;
+
+        public static Dictionary<Direction, char> directionList = new Dictionary<Direction, char>()
         {
-            if (completed) return;
-            if (!activated[pattern.Length - 1] && !activated[0])
+            {Direction.UP_LEFT, 'Q'},
+            {Direction.UP, 'W'},
+            {Direction.UP_RIGHT, 'E'},
+            {Direction.RIGHT, 'D'},
+            {Direction.DOWN_RIGHT, 'C'},
+            {Direction.DOWN, 'X'},
+            {Direction.DOWN_LEFT, 'Z'},
+            {Direction.LEFT, 'A'},
+        };
+        public static Dictionary<Shape, List<string>> shapeList = new Dictionary<Shape, List<string>>()
+        {
+            {Shape.RED, new List<string>()
             {
-                if (pattern[0] == dir)
-                {
-                    nextSegment = 1;
-                    activated[0] = true;
-                }
-                if (pattern[pattern.Length - 1].Opposite() == dir)
-                {
-                    nextSegment = pattern.Length - 2;
-                    activated[pattern.Length - 1] = true;
-                    reversed = true;
-                }
+                "E","WE","WQ","QW","EW",
+                "X","XC","XZ","CX","ZX"
+            }},
+
+            {Shape.BLUE, new List<string>()
+            {
+                "D","DE","DC","ED","CD",
+                "A","AQ","AZ","QA","ZA"
+            }},
+
+            {Shape.GREEN, new List<string>()
+            {
+                "CE","CEW","CWE","CW",
+                "XE","XWE","XW",
+                "ZQ","ZWQ","ZQW","ZW",
+                "XQ","XWQ",
+                "XCE","CXE","CXW",
+                "XZQ","ZXQ",
+                "ZAQ","CDE"
+            }},
+
+
+            {Shape.YELLOW, new List<string>()
+            {
+                "EC","EWC","WEC","WC",
+                "EX","EWX","WEX","WX",
+                "QZ","WQZ","QWZ","WZ",
+                "QX","WQX","QWX",
+                "EXC","ECX","WXC","WCX",
+                "QXZ","QZX","WZX","WXZ",
+                "QAZ","EDC"
+            }},
+
+            {Shape.LIGHTNING, new List<string>()
+            {
+                "ZDZ","XDZ","XDX","ZDX","ZDA","ADZ","ADA",
+                "ZXDX","XZDX","ZXDZ","XZDZ","XZDA","ZXDA",
+                "XDZX","XDXZ","ZDZX","ZDXZ","ADZX","ADXZ",
+                "XZDZX","ZXDXZ","ZXDZX","XZDXZ",
+
+                "ZEZ","XEZ","XEX","ZEX",
+                "ZXEX","XZEX","ZXEZ","XZEZ",
+                "XEZX","XEXZ","ZEZX","ZEXZ",
+                "XZEZX","ZXEXZ","ZXEZX","XZEXZ",
+
+                "ZEDZ","XEDZ","XEDX","ZEDX",
+                "ZXEDX","XZEDX","ZXEDZ","XZEDZ",
+                "XEDZX","XEDXZ","ZEDZX","ZEDXZ",
+                "XZEDZX","ZXEDXZ","ZXEDZX","XZEDXZ",
+
+                "ZDEZ","XDEZ","XDEX","ZDEX",
+                "ZXDEX","XZDEX","ZXDEZ","XZDEZ",
+                "XDEZX","XDEXZ","ZDEZX","ZDEXZ",
+                "XZDEZX","ZXDEXZ","ZXDEZX","XZDEXZ",
+
+
+                "EAE","WAE","WAW","EAW","EAD","WAD","DAW","DAD",
+                "EWAW","WEAW","EWAE","WEAE","EWAD","WEAD",
+                "WAEW","WAWE","EAEW","EAWE","DAEW","DAWE",
+                "WEAEW","EWAWE","EWAEW","WEAWE",
+
+                "EZE","WZE","WZW","EZW",
+                "EWZW","WEZW","EWZE","WEZE",
+                "WZEW","WZWE","EZEW","EZWE",
+                "WEZEW","EWZWE","EWZEW","WEZWE",
+
+                "EZAE","WZAE","WZAW","EZAW",
+                "EWZAW","WEZAW","EWZAE","WEZAE",
+                "WZAEW","WZAWE","EZAEW","EZAWE",
+                "WEZAEW","EWZAWE","EWZAEW","WEZAWE",
+
+                "EAZE","WAZE","WAZW","EAZW",
+                "EWAZW","WEAZW","EWAZE","WEAZE",
+                "WAZEW","WAZWE","EAZEW","EAZWE",
+                "WEAZEW","EWAZWE","EWAZEW","WEAZWE",
+
+            }},
+
+            {Shape.BOMB, new List<string>()
+            {
+                "XDW","CDW","ZDW","XDQ","XDE",
+                "XCW","XEW","XEQ","ZCW",
+
+                "XDEQ","XDCW","XDCE",
+                "XEDW","XCDE","XEDQ","CEDW","ZCDW",
+
+                "XCDW","CXDW","XZDW","ZXDW",
+                "XCDQ","CXDQ","XZDQ","ZXDQ",
+                "XDQW","XDWQ","XDWE","XDEW",
+                "ZDQW","ZDWQ","ZDWE","ZDEW",
+
+                "XCDEW",
+
+                "XAW","CAW","ZAW","XAQ","XAE",
+                "XZW","XQW","XQE","CZW",
+
+                "XAZQ","XAZW","XAQE",
+                "XQAW","XZAQ","XQAE","CZAW","ZQAW",
+
+                "XCAW","CXAW","XZAW","ZXAW",
+                "XCAE","CXAE","XZAE","ZXAE",
+                "XAQW","XAWQ","XAWE","XAEW",
+                "CAQW","CAWQ","CAWE","CAEW",
+
+                "WEDCX"
+            }},
+
+        };
+        public static Dictionary<string, Shape> uniqueShapeList = new Dictionary<string, Shape>();
+        public static void AddStroke(Direction dir)
+        {
+            if (ArduinoTracker.D[4] != 3)
+                return;
+            if (dir == prevInput)
+                return;
+            playerInput += directionList[dir];
+            Console.WriteLine(playerInput);
+            prevInput = dir;
+        }
+        public static void ClearStroke()
+        {
+            playerInput = "";
+            prevInput = Direction.NONE;
+        }
+        public static void SpellAttempt()
+        {
+            if (uniqueShapeList.ContainsKey(playerInput))
+            {
+                CastSpell?.Invoke(uniqueShapeList[playerInput]);
+                Console.WriteLine(uniqueShapeList[playerInput]);
             }
-            else
-            {
-                if (reversed)
-                {
-                    if (dir == pattern[nextSegment].Opposite())
-                    {
-                        activated[nextSegment] = true;
-                        nextSegment--;
-                        if (nextSegment == -1)
-                            completed = true;
-                    }
-                }
-                else if (dir == pattern[nextSegment])
-                {
-                    activated[nextSegment] = true;
-                    nextSegment++;
-                    if (nextSegment == pattern.Length)
-                        completed = true;
-                }
-            }
-            Console.WriteLine(nextSegment);
+            ClearStroke();
         }
-        public void Reset()
+        public static void FillShapeList()
         {
-            completed = false;
-            nextSegment = 0;
-            reversed = false;
-            for (int i = 0; i < activated.Length; i++)
-                activated[i] = false;
-        }
-
-        public void Draw(EasyDraw canvas)
-        {
-            for (int i = 0; i < pattern.Length; i++)
+            uniqueShapeList.Clear();
+            foreach (Shape sh in shapeList.Keys)
             {
-                Vector2 p1 = canvas.InverseTransformPoint(points[i].x, points[i].y);
-                Vector2 p2 = canvas.InverseTransformPoint(points[i+1].x, points[i+1].y);
-                if (activated[i])
-                    canvas.Stroke(0, 255, 0);
-                if (completed)
-                    canvas.Stroke(0, 255, 255);
-                canvas.Line(p1.x, p1.y, p2.x, p2.y);
-                canvas.Stroke(255,255,255);
+                foreach(string st in shapeList[sh])
+                {
+                    uniqueShapeList.Add(st, sh);
+                }
             }
         }
     }

@@ -56,8 +56,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Animation\Animation.cs" />
+    <Compile Include="Animation\BombEffect.cs" />
     <Compile Include="ArduinoTracker.cs" />
     <Compile Include="Calibrator.cs" />
+    <Compile Include="Enemy.cs" />
+    <Compile Include="Entity.cs" />
     <Compile Include="Force.cs" />
     <Compile Include="GXPEngine\AddOns\Gizmos.cs" />
     <Compile Include="GXPEngine\AddOns\SpriteBatch.cs" />
@@ -103,8 +107,10 @@
     <Compile Include="GXPEngine\FMOD\FMODSoundSystem.cs" />
     <Compile Include="GXPEngine\SoLoud\Soloud.cs" />
     <Compile Include="GXPEngine\SoLoud\SoloudSoundSystem.cs" />
+    <Compile Include="Player.cs" />
     <Compile Include="PositionParser.cs" />
     <Compile Include="SDF.cs" />
+    <Compile Include="Animation\Timer.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
