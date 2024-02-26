@@ -10,6 +10,8 @@ using System.Runtime.InteropServices;
 public class MyGame : Game
 {
     public static MyGame self;
+    public Menu _menu;
+    private bool _gameStarted;
     private static int resolutionX = 1920;
     private static int resolutionY = 1080;
 
@@ -35,7 +37,7 @@ public class MyGame : Game
 
     public MyGame() : base(resolutionX, resolutionY, false, pPixelArt: false, pVSync: true)     // Create a window that's 800x600 and NOT fullscreen
     {
-        ArduinoTracker.ConnectPort();
+        //ArduinoTracker.ConnectPort();
 
         self = this;
         cam = new Camera(0, 0, resolutionX, resolutionY);
@@ -78,7 +80,10 @@ public class MyGame : Game
         //test.origin = new Vector2(0.5f, 0.5f);
         //Console.WriteLine(test.origin);
 
+        _menu = new Menu(this);
+        AddChild(_menu);
 
+        _gameStarted = false;
 
         player = new Player(64, 64, -resolutionX/2 + 200, 0);
         Enemy.player = player;
@@ -101,7 +106,7 @@ public class MyGame : Game
     }
     public override void Update()
     {
-        ArduinoTracker.ReadInput();
+        //ArduinoTracker.ReadInput();
 
         float amp = (Mathf.Sin(Time.time / 430f + 128f)) * 0.03f;
         float period = 200f;
