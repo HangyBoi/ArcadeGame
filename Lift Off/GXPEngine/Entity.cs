@@ -4,15 +4,22 @@ using GXPEngine.Core;
 public class Entity : GameObject
 {
     protected bool moving = false;
+    public float width, height;
 
-    protected Vector2 velocity = new Vector2();
+    protected static int[] linesY = { -300, 0, 300 };
 
-    protected AnimationSprite[] states = new AnimationSprite[3]; // Index 0: Idle, Index 1: Run, Index 2: Attack, Index 3: Death
+    protected AnimationSprite[] states = new AnimationSprite[4];
+    /*
+     * Index 0: Idle, 
+     * Index 1: Run, 
+     * Index 2: Attack, 
+     * Index 3: Death
+     */
 
-    private const float IdleAnimationSpeed = 0.07f;
-    private const float RunAnimationSpeed = 0.18f;
-    private const float AttackAnimationSpeed = 0.45f;
-    private const float DeathAnimationSpeed = 0.25f;
+    private float[] AnimationSpeed = new float[]
+    {
+        10f,10f,10f,10f
+    };
 
     // Represents the state of the entity (Idle, Run, Attack)
     public enum EntityState
@@ -25,35 +32,21 @@ public class Entity : GameObject
 
     public EntityState currentState;
 
-    public Entity() : base(true)
+    public Entity(float width, float height) : base(true)
     {
-        currentState = EntityState.Idle;
-        SetEntityState(currentState);
+        this.width = width;
+        this.height = height;
+        
+        SetEntityState(EntityState.Idle);
     }
 
     // Sets the sprites for different entity states
-    public void SetEntityIdleSprites(string idlePath, int colsIdle, int rowsIdle)
-    {
-        states[(int)EntityState.Idle] = new AnimationSprite(idlePath, colsIdle, rowsIdle, -1, false, false);
-        AddChild(states[(int)EntityState.Idle]);
-    }
 
-    public void SetEntityRunSprites(string runPath, int colsRun, int rowsRun)
+    public void SetEntitySprites(string path, int cols, int rows, int id)
     {
-        states[(int)EntityState.Run] = new AnimationSprite(runPath, colsRun, rowsRun, -1, false, false);
-        AddChild(states[(int)EntityState.Run]);
-    }
-
-    public void SetEntityAttackSprites(string attackPath, int colsAttack, int rowsAttack)
-    {
-        states[(int)EntityState.Attack] = new AnimationSprite(attackPath, colsAttack, rowsAttack, -1, false, false);
-        AddChild(states[(int)EntityState.Attack]);
-    }
-
-    public void SetEntityDeathSprites(string deathPath, int colsDeath, int rowsDeath)
-    {
-        states[(int)EntityState.Attack] = new AnimationSprite(deathPath, colsDeath, rowsDeath, -1, false, false);
-        AddChild(states[(int)EntityState.Death]);
+        states[id] = new AnimationSprite(path, cols, rows, -1, false, false);
+        states[id].SetOrigin(width/2, height/2);
+        AddChild(states[id]);
     }
 
     // Sets the current state of the entity
@@ -70,38 +63,20 @@ public class Entity : GameObject
         {
             state.visible = false;
         }
+        states[(int)newState].visible = true;
 
-        //switch between states 
-        //making a loop through the array to turn off not necessary states 
-        //switch between states 
-        switch (newState)
-        {
-            case EntityState.Idle:
-                states[(int)EntityState.Idle].visible = true;
-                states[(int)EntityState.Idle].SetCycle(0, states[(int)EntityState.Idle].frameCount);
-                states[(int)EntityState.Idle].Animate(IdleAnimationSpeed);
-                break;
+        if (currentState == newState)
+            return;
 
-            case EntityState.Run:
-                states[(int)EntityState.Run].visible = true;
-                states[(int)EntityState.Run].SetCycle(0, states[(int)EntityState.Run].frameCount);
-                states[(int)EntityState.Run].Animate(RunAnimationSpeed);
-                break;
-
-            case EntityState.Attack:
-                states[(int)EntityState.Attack].visible = true;
-                states[(int)EntityState.Attack].SetCycle(0, states[(int)EntityState.Attack].frameCount);
-                states[(int)EntityState.Attack].Animate(AttackAnimationSpeed);
-                break;
-            case EntityState.Death:
-                states[(int)EntityState.Death].visible = true;
-                states[(int)EntityState.Death].SetCycle(0, states[(int)EntityState.Death].frameCount);
-                states[(int)EntityState.Death].Animate(DeathAnimationSpeed);
-                break;
-        }
+        states[(int)newState].SetFrame(0);
+        states[(int)newState].SetCycle(0, states[(int)newState].frameCount);
 
         currentState = newState;
 
+    }
+    public void Animate()
+    {
+        states[(int)currentState].Animate(AnimationSpeed[(int)currentState] * Time.deltaTime / 1000);
     }
 
     // Gets the current state of the entity
@@ -109,5 +84,4 @@ public class Entity : GameObject
     {
         return currentState;
     }
-
 }

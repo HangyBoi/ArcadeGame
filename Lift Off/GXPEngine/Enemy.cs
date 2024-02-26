@@ -1,102 +1,133 @@
 ﻿using GXPEngine;
 using GXPEngine.Core;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 public class Enemy : Entity
 {
-    public Player _player;
+    public static Player player;
+    public static List<Enemy>[] collection = new List<Enemy>[]
+        {
+            new List<Enemy>(),
+            new List<Enemy>(),
+            new List<Enemy>()
+        };
 
-    private bool isFollowingPlayer = false;
-    private float followDistance = 300f;
-
-    protected float playerX;
-    protected float playerY;
     protected float enemyX;
     protected float enemyY;
+    public int line;
+    public Pivot spellDisplay;
 
+    public List<Shape> shapes = new List<Shape>();
 
-    private float velX = 1.5f;
-    private float velY = 1;
+    public Vector2 velovity = new Vector2(-150f, 0);
 
     public Sound buzzSound;
-
-    public Enemy(Player player)
+    public Enemy(float width, float height, float x, float y, int line) : base(width, height)
     {
-        _player = player;
+        SetEntitySprites("Assets/enemy/Enemy_Fly.png", 4, 1, 0);
+        //SetScaleXY(3,3);
+        this.x = x;
+        this.y = y;
+        this.line = line;
+        spellDisplay = new Pivot();
+        AddChild(spellDisplay);
+        spellDisplay.y = -height / 2 - 10;
 
-        buzzSound = new Sound("sounds/bee_buzz.mp3", false, false);
-
-        SetEntityIdleSprites("Assets/Enemy_Fly.png", 4, 1);
-        SetEntityRunSprites("Assets/Enemy_Fly.png", 4, 1);
-        SetEntityAttackSprites("Assets/Enemy_Attack.png", 4, 1);
     }
 
     public void Death()
     {
-        buzzSound.Play();
         Console.WriteLine("enemy died");
+        collection[line].Remove(this);
         LateDestroy();
     }
 
     public void UpdateEnemy()
     {
-        if (PlayerInRange())
-        {
-            isFollowingPlayer = true;
-            FollowPlayer();
-        }
+        Move(velovity.x * Time.deltaTime/1000, velovity.y * Time.deltaTime/1000);
+        Animate();
+    }
+    
+    public static void SpawnEnemy()
+    {
+        int line = Utils.Random(0, 3);
+        Enemy enemy = new Enemy(64, 64, MyGame.self.width / 2 - 200, linesY[line], line);
+        collection[line].Add(enemy);
+
+        MyGame.self.AddChild(enemy);
+        enemy.GenerateSpells();
+        MagicShape.CastSpell += enemy.Damage;
     }
 
-    private bool PlayerInRange()
+    public void Damage(Shape shape)
     {
-        float distanceToPlayer = DistanceToPlayer();
-        return distanceToPlayer <= followDistance;
-    }
-
-    private void FollowPlayer()
-    {
-        SetEntityState(EntityState.Run);
-        playerX = _player.x;
-        playerY = _player.y;
-
-        enemyX = x;
-        enemyY = y;
-
-        if (Mathf.Abs(playerX - enemyX) > 1)
+        if (shapes[0] == shape && player.line == line)
         {
-            if (playerX < enemyX)
+            if (shapes.Count > 1)
             {
-                Move(-velX, 0);
-                states[(int)EntityState.Run].Mirror(false, false);
+                RemoveSpell();
             }
             else
-            {
-                Move(velX, 0);
-                states[(int)EntityState.Run].Mirror(true, false);
-            }
-        }
-
-        if (Mathf.Abs(playerY - enemyY) > 1)
-        {
-            if (playerY < enemyY)
-            {
-                Move(0, -velY);
-            }
-            else
-            {
-                Move(0, velY);
-            }
+                Death();
         }
     }
-
-    private float DistanceToPlayer()
+    public bool IsEnemyInFront()
     {
-        playerX = _player.x;
-        playerY = _player.y;
-        enemyX = x;
-        enemyY = y;
+        return  x - player.x < player.reachDistance;
+    }
 
-        return Mathf.Sqrt((playerX - enemyX) * (playerX - enemyX) + (playerY - enemyY) * (playerY - enemyY));
+    public static void UpdateAll()
+    {
+        for (int i=0; i<3;i++)
+            foreach (var enemy in collection[i])
+            {
+                enemy.UpdateEnemy();
+
+                //Move to enemy manager
+                if (enemy.x < MyGame.self.crossLine)
+                {
+                    enemy.Death();
+                    break;
+                }
+            }
+    }
+
+    public void GenerateSpells()
+    {
+        shapes = new List<Shape>();
+        int shapeCount = Utils.Random(1, 4);
+
+        for (int i =0; i<shapeCount; i++)
+        {
+            Shape sh = (Shape)Utils.Random(0, 4);
+            shapes.Add(sh);
+
+            Sprite symbol = new Sprite(MagicShape.spellSprite[(int)sh]);
+            symbol.SetOrigin(width/2, height/2);
+            spellDisplay.AddChild(symbol);
+            symbol.x = i * 40 - (shapeCount - 1) * 20;
+            symbol.y = 0;
+        }
+
+        foreach(var sh in shapes)
+        {
+            Console.WriteLine(sh);
+        }
+    }
+    public void RemoveSpell()
+    {
+        shapes.RemoveAt(0);
+
+        List<GameObject> spells = spellDisplay.GetChildren();
+        spellDisplay.RemoveChild(spells[0]);
+        spells[0].LateDestroy();
+        spells.RemoveAt(0);
+
+        foreach (GameObject go in spells)
+        {
+            go.Move(-20, 0);
+        }
     }
 }

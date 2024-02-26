@@ -226,7 +226,9 @@ namespace GXPEngine.Core {
 					Display();
 					
 					Time.newFrame ();
-					GL.glfwPollEvents();
+					Animation.Timer.Update();
+                    Animation.Animation.Update();
+                    GL.glfwPollEvents();
 				}
 				
 				

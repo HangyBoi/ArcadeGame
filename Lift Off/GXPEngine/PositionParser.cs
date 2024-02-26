@@ -10,7 +10,7 @@ using System.Text;
 
 namespace GXPEngine
 {
-    public enum direction
+    public enum Direction
     {
         NONE = -1,
         LEFT = 0, 
@@ -23,17 +23,18 @@ namespace GXPEngine
         DOWN_LEFT = 7
 
     }
-    public static class directionMethods
+    public static class DirectionMethods
     {
-        public static direction Opposite(this direction dir)
+        public static Direction Opposite(this Direction dir)
         {
-            return (direction)(((int)dir + 4) % 8);
+            return (Direction)(((int)dir + 4) % 8);
         }
     }
     public static class PositionParser
     {
-        public delegate void PlayerInput(direction dir);
+        public delegate void PlayerInput(Direction dir);
         public static event PlayerInput OnPlayerInput;
+
         public static Vector2 velocity = new Vector2(0, 0);
         public static Vector2 acceleration = new Vector2(0, 0);
         public static Vector2 position = new Vector2(0, 0);
@@ -49,19 +50,19 @@ namespace GXPEngine
         public static Vector2 screenPos;
         public static Vector3 rot;
 
-        public static direction[] directionBuffer = new direction[5];
+        public static Direction[] directionBuffer = new Direction[5];
 
-        public static direction DetectMovement()
+        public static Direction DetectMovement()
         {
             float angle = position.angle(0);
             if (position.length() > 1/sensitivity)
             {
                 int dir = (int)((angle + 9*Mathf.PI/8) / Mathf.PI * 4) % 8;
-                //Console.WriteLine((direction)dir);
-                return (direction)dir;
+                //Console.WriteLine((Direction)dir);
+                return (Direction)dir;
             }
-            //Console.WriteLine(direction.NONE);
-            return direction.NONE;
+            //Console.WriteLine(Direction.NONE);
+            return Direction.NONE;
         }
 
         public static Vector2 UpdateCoordinates ()
@@ -124,7 +125,7 @@ namespace GXPEngine
         }
         public static void FilterMovement ()
         {
-            direction newDir = DetectMovement();
+            Direction newDir = DetectMovement();
 
             for (int i=1; i<directionBuffer.Length; i++)
                 directionBuffer[i - 1] = directionBuffer[i];
@@ -132,7 +133,7 @@ namespace GXPEngine
             directionBuffer[4] = newDir;
 
 
-            if (newDir == direction.NONE)
+            if (newDir == Direction.NONE)
                 return;
 
             int count = 0;
@@ -147,7 +148,7 @@ namespace GXPEngine
 
             for (int i=0; i<directionBuffer.Length-1; i++)
             {
-                if (directionBuffer[i] == direction.NONE || directionBuffer[i] == directionBuffer[4].Opposite())
+                if (directionBuffer[i] == Direction.NONE || directionBuffer[i] == directionBuffer[4].Opposite())
                     empty++;
                 if (directionBuffer[i] == directionBuffer[4])
                     action++;
