@@ -3,10 +3,11 @@ using GXPEngine.Core;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Xml.Schema;
 
 public class Enemy : Entity
 {
-    public static Player _player;
+    public static Player player;
     public static List<Enemy>[] collection = new List<Enemy>[]
         {
             new List<Enemy>(),
@@ -17,6 +18,7 @@ public class Enemy : Entity
     protected float enemyX;
     protected float enemyY;
     public int line;
+    public bool isDead = false;
     public Pivot spellDisplay;
 
     public List<Shape> shapes = new List<Shape>();
@@ -40,9 +42,11 @@ public class Enemy : Entity
     public void Death()
     {
         Console.WriteLine("enemy died");
-        _player.score++;
         collection[line].Remove(this);
         LateDestroy();
+        if (!isDead)
+            player.score++;
+        isDead = true;
     }
 
     public void UpdateEnemy()
@@ -63,8 +67,9 @@ public class Enemy : Entity
 
     public void Damage(Shape shape)
     {
-        if (shapes[0] == shape)
-            Damage();
+        if (shapes.Count > 0)
+            if (shapes[0] == shape)
+                Damage();
     }
 
     public void Damage()
@@ -74,11 +79,14 @@ public class Enemy : Entity
             RemoveSpell();
         }
         else
+        {
+            RemoveSpell();
             Death();
+        }
     }
     public bool IsEnemyInFront()
     {
-        return x - _player.x < _player.reachDistance;
+        return x - player.x < player.reachDistance;
     }
 
     public static void UpdateAll()
@@ -95,16 +103,16 @@ public class Enemy : Entity
                     break;
                 }
 
-                if (Math.Abs(enemy.x - _player.x) < 10f && enemy.line == _player.line)
+                if (Math.Abs(enemy.x - player.x) < 10f && enemy.line == player.line)
                 {
                     enemy.Death();
-                    _player._HP--;
-                    _player.hpDecreased = true;
-                    Console.WriteLine(_player._HP);
+                    player._HP--;
+                    player.hpDecreased = true;
+                    Console.WriteLine(player._HP);
                     break;
                 }
 
-                _player.hpDecreased = false;
+                player.hpDecreased = false;
             }
     }
 
@@ -131,17 +139,19 @@ public class Enemy : Entity
         {
             shapes.RemoveAt(0);
 
-        List<GameObject> spells = spellDisplay.GetChildren();
-        if (spells.Count> 0)
-        {
-
-            spellDisplay.RemoveChild(spells[0]);
-            spells[0].LateDestroy();
-            spells.RemoveAt(0);
-
-            foreach (GameObject go in spells)
+            List<GameObject> spells = spellDisplay.GetChildren();
+            if (spells.Count > 0)
             {
-                go.Move(-20, 0);
+
+                spellDisplay.RemoveChild(spells[0]);
+                spells[0].LateDestroy();
+                spells.RemoveAt(0);
+
+                player.score++;
+                foreach (GameObject go in spells)
+                {
+                    go.Move(-20, 0);
+                }
             }
         }
     }

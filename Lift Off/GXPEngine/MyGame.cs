@@ -141,7 +141,7 @@ public class MyGame : Game
         ZOrder.Add(player, 0);
 
         hud = new HUD();
-        AddChild(hud);
+        cam.AddChild(hud);
 
         gameState = new StateOfTheGame();
         AddChild(gameState);
