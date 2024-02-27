@@ -62,6 +62,7 @@
     <Compile Include="Animation\BombEffect.cs" />
     <Compile Include="ArduinoTracker.cs" />
     <Compile Include="Background.cs" />
+    <Compile Include="Button.cs" />
     <Compile Include="Calibrator.cs" />
     <Compile Include="Enemy.cs" />
     <Compile Include="Entity.cs" />
@@ -70,7 +71,9 @@
     <Compile Include="GXPEngine\AddOns\SpriteBatch.cs" />
     <Compile Include="GXPEngine\AddOns\TiledLoader.cs" />
     <Compile Include="GXPEngine\Core\Vector3.cs" />
+    <Compile Include="HUD.cs" />
     <Compile Include="MagicShape.cs" />
+    <Compile Include="Menu.cs" />
     <Compile Include="ParticleSystem.cs" />
     <Compile Include="MyGame.cs" />
     <Compile Include="GXPEngine\Core\Canvas.cs" />

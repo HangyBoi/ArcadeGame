@@ -4,16 +4,15 @@ using GXPEngine.Core;
 using System;
 using System.Drawing;
 using System.Runtime.Remoting.Lifetime;
-using TiledMapParser;
 
 
 public class Player : Entity
 {
     protected float speed = 2f;
 
-    protected int _HP;
-    public float width;
-    public float height;
+    public int _HP;
+    public bool hpDecreased;
+    public int score;
     public int line;
     public float reachDistance = 2000;
 
@@ -39,6 +38,7 @@ public class Player : Entity
         
 
         _HP = 3;
+        score = 0;
         this.width = width;
         this.height = height;
 
@@ -116,6 +116,11 @@ public class Player : Entity
     public int GetHP()
     {
         return _HP;
+    }
+
+    public int GetScore()
+    {
+        return score;
     }
 
     public void WinGame()

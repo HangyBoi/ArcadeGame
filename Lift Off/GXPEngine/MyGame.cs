@@ -10,6 +10,8 @@ using System.Runtime.InteropServices;
 public class MyGame : Game
 {
     public static MyGame self;
+    public Menu _menu;
+    private bool _gameStarted;
     private static int resolutionX = 1920;
     private static int resolutionY = 1080;
 
@@ -37,6 +39,8 @@ public class MyGame : Game
 
     protected StateOfTheGame gameState;
     protected Player player;
+
+    protected HUD hud;
 
     private float timeSinceLastSpawn;
     private float spawnInterval = 3000;
@@ -125,13 +129,19 @@ public class MyGame : Game
         //test.origin = new Vector2(0.5f, 0.5f);
         //Console.WriteLine(test.origin);
 
+        _menu = new Menu(this);
+        AddChild(_menu);
 
+        _gameStarted = false;
 
 
         player = new Player(64, 64, -resolutionX/2 + 200, 0);
         Enemy.player = player;
         player.SwitchLines(0);
         ZOrder.Add(player, 0);
+
+        hud = new HUD();
+        AddChild(hud);
 
         gameState = new StateOfTheGame();
         AddChild(gameState);
@@ -254,6 +264,8 @@ public class MyGame : Game
         }
 
         Enemy.UpdateAll();
+
+        hud.HudUpdate(player);
 
         if (Input.GetKeyDown(Key.T))
             MagicShape.SpellPerform(Shape.RED);
