@@ -6,7 +6,7 @@ using System.Drawing;
 
 public class Enemy : Entity
 {
-    public static Player player;
+    public static Player _player;
     public static List<Enemy>[] collection = new List<Enemy>[]
         {
             new List<Enemy>(),
@@ -40,6 +40,7 @@ public class Enemy : Entity
     public void Death()
     {
         Console.WriteLine("enemy died");
+        _player.score++;
         collection[line].Remove(this);
         LateDestroy();
     }
@@ -63,19 +64,21 @@ public class Enemy : Entity
 
     public void Damage(Shape shape)
     {
-        if (shapes[0] == shape && player.line == line)
+        if (shapes[0] == shape && _player.line == line)
         {
             if (shapes.Count > 1)
             {
                 RemoveSpell();
             }
             else
+            {
                 Death();
+            }
         }
     }
     public bool IsEnemyInFront()
     {
-        return x - player.x < player.reachDistance;
+        return x - _player.x < _player.reachDistance;
     }
 
     public static void UpdateAll()
@@ -91,6 +94,17 @@ public class Enemy : Entity
                     enemy.Death();
                     break;
                 }
+
+                if (Math.Abs(enemy.x - _player.x) < 10f && enemy.line == _player.line)
+                {
+                    enemy.Death();
+                    _player._HP--;
+                    _player.hpDecreased = true;
+                    Console.WriteLine(_player._HP);
+                    break;
+                }
+
+                _player.hpDecreased = false;
             }
     }
 
@@ -125,6 +139,7 @@ public class Enemy : Entity
             List<GameObject> spells = spellDisplay.GetChildren();
             if (spells.Count > 0)
             {
+                _player.score++;
                 spellDisplay.RemoveChild(spells[0]);
                 spells[0].LateDestroy();
                 spells.RemoveAt(0);

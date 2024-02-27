@@ -23,7 +23,7 @@ public class MyGame : Game
     public Vector2 cameraTarget;
     public Vector2 coinPrevPos;
     public float followSpeed = 0.05f;
-    public float crossLine = -resolutionX/2 + 250;
+    public float crossLine = -resolutionX/2;
 
 
     public ParticleSystem.RadialForce playerForce = new ParticleSystem.RadialForce(new Vector2(0, 0));
@@ -31,6 +31,8 @@ public class MyGame : Game
 
     protected StateOfTheGame gameState;
     protected Player player;
+
+    protected HUD hud;
 
     private float timeSinceLastSpawn;
     private float spawnInterval = 3000;
@@ -86,8 +88,11 @@ public class MyGame : Game
         _gameStarted = false;
 
         player = new Player(64, 64, -resolutionX/2 + 200, 0);
-        Enemy.player = player;
+        Enemy._player = player;
         AddChild(player);
+
+        hud = new HUD();
+        AddChild(hud);
 
         gameState = new StateOfTheGame();
         AddChild(gameState);
@@ -190,6 +195,8 @@ public class MyGame : Game
         }
 
         Enemy.UpdateAll();
+
+        hud.HudUpdate(player);
 
         if (Input.GetKeyDown(Key.T))
             MagicShape.SpellPerform(Shape.RED);

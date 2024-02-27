@@ -9,12 +9,10 @@ public class Menu : GameObject
     private Button _quitButton;      //FOR THE QUIT BUTTON IF NEEDED
     private float buttonOffset = 100;
     private MyGame _mygame;
-    bool _hasStarted;
 
     public Menu(MyGame mygame) : base(false)
     {
         _mygame = mygame;
-        _hasStarted = false;
         //_notButtonHeader = new Button("Assets/backgrounds/darkforest.png");
         //_quitButton = new Button("Assets/UI/quitButP.png);
         _startButton = new Button("Assets/UI/playButY.png");
@@ -32,7 +30,7 @@ public class Menu : GameObject
             {
                 Console.WriteLine("bro you clicked");
                 HideMenu();
-                StartGame();
+                //StartGame();
             }
             /*else if (IsMouseOverButton(_quitButton))
             {
@@ -62,15 +60,6 @@ public class Menu : GameObject
         foreach (GameObject child in children)
         {
             child.Destroy();
-        }
-    }
-
-    void StartGame()
-    {
-        if (_hasStarted == false)
-        {
-            //_mygame.StartLevel();
-            _hasStarted = true;
         }
     }
 }
