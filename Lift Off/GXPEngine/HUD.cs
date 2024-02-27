@@ -1,75 +1,96 @@
 ﻿using GXPEngine;
+using GXPEngine.Animation;
 using System;
 using System.Drawing;
+using System.Runtime.InteropServices;
+using TiledMapParser;
 
 public class HUD : EasyDraw
 {
-    private float offset;
+    public static HUD self;
+    public Player player;
     private int baseTextSize;
-    private int targetTextSize;
-    private float lerpTextSpeed;
-    private float lerpTextTimer;
-    private bool isLerpingForward;
-    private bool isLerpingBackward;
+
+    public EasyDraw HPDisplay;
+    public EasyDraw ScoreDisplay;
+
+    private Timer scoreAnimationTimer;
+    private Timer hpAnimationTimer;
 
     public HUD() : base(MyGame.self.width, MyGame.self.height, false)
     {
-        offset = 35;
+        self = this;
+        player = MyGame.self.player;
         baseTextSize = 20;
-        targetTextSize = baseTextSize; 
 
-        lerpTextSpeed = 0.05f;
-        lerpTextTimer = 0f;
-        isLerpingForward = false;
-        isLerpingBackward = false;
+        scoreAnimationTimer = new Timer();
+        hpAnimationTimer = new Timer();
 
-        SetXY(-MyGame.self.width / 2, -MyGame.self.height / 2);
+        HPDisplay = new EasyDraw(500,200);
+        HPDisplay.TextSize(60);
+
+        ScoreDisplay = new EasyDraw(500,200);
+        ScoreDisplay.SetOrigin(ScoreDisplay.width / 2, 0);
+        ScoreDisplay.TextSize(60);
+
+        AddChild(HPDisplay);
+        AddChild(ScoreDisplay);
+
+        SetXY(-MyGame.self.width / 2, -MyGame.self.height/ 2);
+        HPDisplay.SetXY(0, 0);
+        ScoreDisplay.SetXY(MyGame.self.width / 2, 0);
+        HPDisplay.TextAlign(CenterMode.Center,CenterMode.Center);
+        ScoreDisplay.TextAlign(CenterMode.Center, CenterMode.Center);
+
+        string scoreText = "" + player.score;
+        ScoreDisplay.ClearTransparent();
+        ScoreDisplay.Text(scoreText, 250, 100);
+
+        string hpText = "HP: " + player.HP;
+        HPDisplay.ClearTransparent();
+        HPDisplay.Text(hpText, 250, 100);
+
     }
-
-    public void HudUpdate(Player _player)
+    public void StartHPAnimation()
     {
-        graphics.Clear(Color.Empty);
-        string hpText = "HP: " + _player.GetHP();
-        Font customFont = new Font(SystemFonts.DefaultFont.FontFamily, (int)(Mathf.Lerp(baseTextSize, targetTextSize, lerpTextTimer)));
-        graphics.DrawString(hpText, customFont, Brushes.White, 0, 0);
+        hpAnimationTimer.SetLaunch(0.3f);
+    }
+    public void StartScoreAnimation()
+    {
+        scoreAnimationTimer.SetLaunch(0.3f);
+    }
+    public void HPAnimation()
+    {
+        HPDisplay.scale = 1 + hpAnimationTimer.time;
+    }
+    public void ScoreAnimation()
+    {
+        ScoreDisplay.scale = 1 + scoreAnimationTimer.time;
+    }
+    public void SetScore(int score)
+    {
+        string scoreText = "" + score;
+        ScoreDisplay.ClearTransparent();
+        ScoreDisplay.Text(scoreText, 250, 100);
+        StartScoreAnimation();
 
-        string scoreText = "" + _player.GetScore();
-        graphics.DrawString(scoreText, customFont, Brushes.White, MyGame.self.width / 2, 0);
-
-        if (_player.hpDecreased == true)
+    }
+    public void SetHp(int hp)
+    {
+        string hpText = "HP: " + hp;
+        HPDisplay.ClearTransparent();
+        HPDisplay.Text(hpText, 250, 100);
+        StartHPAnimation();
+    }
+    public void HudUpdate()
+    {
+        if (hpAnimationTimer.time > 0)
         {
-            if (!isLerpingForward && !isLerpingBackward)
-            {
-                isLerpingForward = true;
-            }
+            HPAnimation();
         }
-
-        if (isLerpingForward)
+        if (scoreAnimationTimer.time > 0)
         {
-            lerpTextTimer += lerpTextSpeed;
-            if (lerpTextTimer >= 1f)
-            {
-                lerpTextTimer = 0f;
-                isLerpingForward = false;
-                targetTextSize = 60;
-                isLerpingBackward = true;
-            } 
+            ScoreAnimation();
         }
-
-        if (isLerpingBackward)
-        {
-            lerpTextTimer += lerpTextSpeed;
-            if (lerpTextTimer >= 1f)
-            {
-                lerpTextTimer = 0f;
-                isLerpingBackward = false;
-                targetTextSize = (int)Mathf.Lerp(targetTextSize, baseTextSize, lerpTextTimer); // Use Mathf.Lerp here
-            }
-        }
-
-        /*        if (_player._HP == 0)
-                {
-                    MyGame.self.Destroy();
-                }*/
     }
 }

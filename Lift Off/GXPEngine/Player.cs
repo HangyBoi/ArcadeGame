@@ -10,7 +10,7 @@ public class Player : Entity
 {
     protected float speed = 2f;
 
-    public int _HP;
+    public int HP;
     public bool hpDecreased;
     public int score;
     public int line;
@@ -37,7 +37,7 @@ public class Player : Entity
         //SetScaleXY(2, 2);
         
 
-        _HP = 3;
+        HP = 3;
         score = 0;
         this.width = width;
         this.height = height;
@@ -115,12 +115,23 @@ public class Player : Entity
 
     public int GetHP()
     {
-        return _HP;
+        return HP;
+    }
+    public void ChangeHP(int hp)
+    {
+         HP += hp;
+        hpDecreased = true;
+        HUD.self.SetHp(HP);
     }
 
     public int GetScore()
     {
         return score;
+    }
+    public void ChangeScore(int score)
+    {
+        this.score+=score;
+        HUD.self.SetScore(this.score);
     }
 
     public void WinGame()
@@ -157,8 +168,8 @@ public class Player : Entity
                 Console.WriteLine("Enemy Touched!");
                 enemy.LateDestroy();
                 hitSound.Play();
-                _HP--;
-                if (_HP == 0)
+                HP--;
+                if (HP == 0)
                 {
                     gameOver.Play();
                     Death();

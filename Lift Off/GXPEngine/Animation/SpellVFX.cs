@@ -144,6 +144,7 @@ namespace GXPEngine.Animation
             if (target is Enemy)
             {
                 Enemy enemy = (Enemy)target;
+                enemy.Score(shape);
                 enemy.Damage(shape);
             }
         }

@@ -38,7 +38,7 @@ public class MyGame : Game
 
 
     protected StateOfTheGame gameState;
-    protected Player player;
+    public Player player;
 
     protected HUD hud;
 
@@ -47,7 +47,7 @@ public class MyGame : Game
 
     public MyGame() : base(resolutionX, resolutionY, false, pRealWidth:1366, pRealHeight:768, pPixelArt: false)     // Create a window that's 800x600 and NOT fullscreen
     {
-        //ArduinoTracker.ConnectPort();
+        ArduinoTracker.ConnectPort();
 
         self = this;
         cam = new Camera(0, 0, resolutionX, resolutionY);
@@ -163,7 +163,7 @@ public class MyGame : Game
     }
     public override void Update()
     {
-        //ArduinoTracker.ReadInput();
+        ArduinoTracker.ReadInput();
 
         //float amp = (Mathf.Sin(Time.time / 430f + 128f)) * 0.03f;
         //float period = 200f;
@@ -265,7 +265,7 @@ public class MyGame : Game
 
         Enemy.UpdateAll();
 
-        hud.HudUpdate(player);
+        hud.HudUpdate();
 
         if (Input.GetKeyDown(Key.T))
             MagicShape.SpellPerform(Shape.RED);

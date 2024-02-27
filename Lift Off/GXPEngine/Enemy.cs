@@ -1,4 +1,5 @@
 ﻿using GXPEngine;
+using GXPEngine.Animation;
 using GXPEngine.Core;
 using System;
 using System.Collections.Generic;
@@ -39,13 +40,21 @@ public class Enemy : Entity
 
     }
 
+    public void Score (Shape shape, uint flags = 0)
+    {
+        if (isDead || shapes.Count == 0)
+            return;
+        HUD.self.ScoreAnimation();
+        if (shape == shapes[0])
+            player.ChangeScore(1);
+        if (shapes.Count == 1)
+            player.ChangeScore(1);
+    }
     public void Death()
     {
         Console.WriteLine("enemy died");
         collection[line].Remove(this);
         LateDestroy();
-        if (!isDead)
-            player.score++;
         isDead = true;
     }
 
@@ -103,12 +112,11 @@ public class Enemy : Entity
                     break;
                 }
 
-                if (Math.Abs(enemy.x - player.x) < 10f && enemy.line == player.line)
+                if (Math.Abs(enemy.x - MyGame.self.crossLine) < 10f)
                 {
                     enemy.Death();
-                    player._HP--;
-                    player.hpDecreased = true;
-                    Console.WriteLine(player._HP);
+                    player.ChangeHP(-1);
+                    Console.WriteLine(player.HP);
                     break;
                 }
 
@@ -147,7 +155,6 @@ public class Enemy : Entity
                 spells[0].LateDestroy();
                 spells.RemoveAt(0);
 
-                player.score++;
                 foreach (GameObject go in spells)
                 {
                     go.Move(-20, 0);
