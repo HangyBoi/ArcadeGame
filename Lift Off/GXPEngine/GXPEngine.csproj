@@ -58,7 +58,7 @@
   <ItemGroup>
     <Compile Include="Animation\Animation.cs" />
     <Compile Include="Animation\SpellVFX.cs" />
-    <Compile Include="Animation\SpriteAnimation.cs" />
+    <Compile Include="Animation\PopupAnimation.cs" />
     <Compile Include="Animation\BombEffect.cs" />
     <Compile Include="ArduinoTracker.cs" />
     <Compile Include="Background.cs" />
@@ -114,6 +114,7 @@
     <Compile Include="GXPEngine\SoLoud\Soloud.cs" />
     <Compile Include="GXPEngine\SoLoud\SoloudSoundSystem.cs" />
     <Compile Include="Player.cs" />
+    <Compile Include="PopupSprites.cs" />
     <Compile Include="PositionParser.cs" />
     <Compile Include="SDF.cs" />
     <Compile Include="Animation\Timer.cs" />

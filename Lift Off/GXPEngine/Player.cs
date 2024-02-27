@@ -69,7 +69,6 @@ public class Player : Entity
         if (Input.GetMouseButtonDown(0) && !moving)
         {
             attackTimer.SetLaunch(0.8f);
-
             SetEntityState(EntityState.Attack);
         }
     }
@@ -132,6 +131,8 @@ public class Player : Entity
     {
         this.score+=score;
         HUD.self.SetScore(this.score);
+        PopupAnimation popup = new PopupAnimation("+" + score, 0.8f, 0,-MyGame.self.height/2+200, MyGame.self.cam, MyGame.self.GetComboColor());
+        popup.StartAnimation();
     }
 
     public void WinGame()

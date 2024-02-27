@@ -11,14 +11,14 @@ namespace GXPEngine.Animation
     public class SpellVFX : Animation
     {
         /// <summary>
-        /// 0x00000001 - double kill
-        /// 0x00000010 - tripple kill
-        /// 0x00000100 - combo
-        /// 0x00001000
-        /// 0x00010000
-        /// 0x00100000
-        /// 0x01000000
-        /// 0x10000000
+        /// 0b00000001 - kill
+        /// 0b00000010 - double hit
+        /// 0b00000100 - tripple hit
+        /// 0b00001000 - lucky shot
+        /// 0b00010000
+        /// 0b00100000
+        /// 0b01000000
+        /// 0b10000000
         /// </summary>
         uint flags = 0x00000000;
 
@@ -32,8 +32,9 @@ namespace GXPEngine.Animation
         public Vector2 endPos;
         public float gravity = 5000f;
         Shape shape;
-        public SpellVFX(float time, GameObject parent, Shape shape) : base(time)
+        public SpellVFX(float time, GameObject parent, Shape shape, uint flogs = 0) : base(time)
         {
+            flags = flogs;
             this.shape = shape;
             particles = new ParticleSystem("Assets\\glow.png", 0, 0, ParticleSystem.EmitterType.rect, ParticleSystem.Mode.velocity, parent);
             particles.blendMode = BlendMode.ALPHABLEND;
@@ -120,6 +121,39 @@ namespace GXPEngine.Animation
 
             if (target != null)
             {
+                if (target is Enemy)
+                {
+                    Enemy enemy = (Enemy)target;
+                    if (enemy.isDead)
+                        target = null;
+                    else if (enemy.shapes.Count > 0)
+                        if (enemy.shapes[0] != shape)
+                            target = null;
+                }
+            }
+            else
+            {
+                foreach (GameObject go in particles.parent.GetChildren())
+                {
+                    if (go is Enemy)
+                    {
+                        Enemy enemy = (Enemy)go;
+                        if (enemy.shapes.Count > 0)
+                        {
+                            if (enemy.shapes[0] == shape)
+                            {
+                                target = enemy;
+                                flags |= 0b1000;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (target != null)
+            {
+                timer.time = 1;
                 Vector2 targetPos = new Vector2(target.x, target.y);
                 Vector2 pos = new Vector2(particles.x, particles.y);
                 float r = (targetPos - pos).length();
@@ -130,7 +164,6 @@ namespace GXPEngine.Animation
                 particles.y = Mathf.Lerp(pos.y, targetPos.y, Mathf.Min(Time.deltaTime / (r), 1f));
                 if (r < 10)
                 {
-                    Console.WriteLine("HIT");
                     timer.time = 0;
                 }
             }
@@ -144,8 +177,33 @@ namespace GXPEngine.Animation
             if (target is Enemy)
             {
                 Enemy enemy = (Enemy)target;
-                enemy.Score(shape);
-                enemy.Damage(shape);
+                if (enemy.shapes.Count == 1)
+                    flags |= 0b1;
+                if (!enemy.isDead)
+                {
+                    enemy.Score(shape, flags);
+                    enemy.Damage(shape);
+
+                    if ((flags & 0b1) != 0)
+                    {
+                        Vector2 pos = Utils.Random(new Vector2(enemy.x, enemy.y), new Vector2(50, 100));
+                        PopupAnimation popup = new PopupAnimation("KILL", 0.8f, pos.x, pos.y, MyGame.self.lineLayers[enemy.line], MyGame.self.GetComboColor());
+                        popup.StartAnimation();
+                    }
+                    if ((flags & 0b10) != 0)
+                    {
+                        Vector2 pos = Utils.Random(new Vector2(enemy.x, enemy.y), new Vector2(50, 100));
+                        PopupAnimation popup = new PopupAnimation("DOUBLE", 0.8f, pos.x, pos.y, MyGame.self.lineLayers[enemy.line], MyGame.self.GetComboColor());
+                        popup.StartAnimation();
+                    }
+
+                    if ((flags & 0b1000) != 0)
+                    {
+                        Vector2 pos = Utils.Random(new Vector2(enemy.x, enemy.y), new Vector2(50, 100));
+                        PopupAnimation popup = new PopupAnimation("LUCKY SHOT", 0.8f, pos.x, pos.y, MyGame.self.lineLayers[enemy.line], MyGame.self.GetComboColor());
+                        popup.StartAnimation();
+                    }
+                }
             }
         }
     }

@@ -27,15 +27,31 @@ public class MyGame : Game
     public Sprite background;
     public Sprite HUD;
 
-    public Vector2 cameraTarget = new Vector2(0,0);
+    public Vector2 cameraTarget = new Vector2(0, 0);
     public Vector2 coinPrevPos;
     public float followSpeed = 5f;
-    public float crossLine = -resolutionX/2 + 250;
+    public float crossLine = -resolutionX / 2 + 250;
     public Pivot[] lineLayers;
 
 
     public ParticleSystem.RadialForce playerForce = new ParticleSystem.RadialForce(new Vector2(0, 0));
-
+    public Timer comboTimer;
+    public int combo = 0;
+    public float comboMultiplier = 1;
+    public Dictionary<int, float> comboList = new Dictionary<int, float>()
+    {
+        {0, 1f },
+        { 3, 1.2f },
+        { 5, 1.5f },
+        { 10, 2f }
+    };
+    public Dictionary<int, Color> comboColor = new Dictionary<int, Color>()
+    {
+        { 0, Color.White },
+        { 3, Color.FromArgb(0xffff99) },
+        { 5, Color.FromArgb(0xff9933) },
+        { 10, Color.FromArgb(0xff3333) }
+    };
 
     protected StateOfTheGame gameState;
     public Player player;
@@ -47,7 +63,7 @@ public class MyGame : Game
 
     public MyGame() : base(resolutionX, resolutionY, false, pRealWidth:1366, pRealHeight:768, pPixelArt: false)     // Create a window that's 800x600 and NOT fullscreen
     {
-        ArduinoTracker.ConnectPort();
+        //ArduinoTracker.ConnectPort();
 
         self = this;
         cam = new Camera(0, 0, resolutionX, resolutionY);
@@ -123,6 +139,8 @@ public class MyGame : Game
         MagicShape.FillShapeList();
         MagicShape.LoadSprites();
         MagicShape.CastSpell += SpellEffect;
+
+        PopupSprites.Setup();
         Calibrator.Setup();
 
 
@@ -148,11 +166,9 @@ public class MyGame : Game
         gameState.SetGameState(StateOfTheGame.GameState.Menu);
 
         timeSinceLastSpawn = Time.time;
-
-
-
+        comboTimer = new Timer();
+        comboTimer.OnTimerEnd += ResetCombo;
     }
-
 
     public static void DisplayInput(Direction dir)
     {
@@ -163,7 +179,7 @@ public class MyGame : Game
     }
     public override void Update()
     {
-        ArduinoTracker.ReadInput();
+        //ArduinoTracker.ReadInput();
 
         //float amp = (Mathf.Sin(Time.time / 430f + 128f)) * 0.03f;
         //float period = 200f;
@@ -336,6 +352,7 @@ public class MyGame : Game
 
     public void CastMagicBall (Shape shape)
     {
+        uint flags = 0;
         Color color = Color.FromArgb(0xffffff);
         List<Enemy> targets = new List<Enemy>();
         foreach (Enemy target in Enemy.collection[player.line])
@@ -348,22 +365,61 @@ public class MyGame : Game
 
         if (targets.Count != 0)
         {
-            foreach (Enemy target in targets)
-                CastMagicBall(shape, target);
+            for (int i=0; i<targets.Count; i++) 
+            {
+                Enemy target = targets[i];
+                if (i == 1)
+                    flags |= 0b10;
+                CastMagicBall(shape, target, flags);
+            }
         }
         else
-            CastMagicBall(shape, null);
+            CastMagicBall(shape, null, flags);
     }
-    public void CastMagicBall (Shape shape, GameObject target)
+    public void CastMagicBall (Shape shape, Enemy target, uint flags = 0)
     {
+        if (target != null)
+            if (target.shapes.Count == 1)
+                flags |= 0b1;
         Vector2 playerCoords = lineLayers[player.line].InverseTransformVector(player.TransformPoint(0, 0));
-        SpellVFX spell = new SpellVFX(2f, lineLayers[player.line], shape);
+        SpellVFX spell = new SpellVFX(1f, lineLayers[player.line], shape, flags);
         spell.SetTrajectory(playerCoords, target);
 
         spell.StartAnimation();
     }
+
+    public void IncreaseCombo()
+    {
+        comboTimer.SetLaunch(3f);
+        combo++;
+        Console.WriteLine("combo: " + combo);
+        foreach (int key in comboList.Keys)
+        {
+            if (combo >= key)
+                comboMultiplier = comboList[key];
+        }
+        hud.StartComboAnimation();
+    }
+    public Color GetComboColor()
+    {
+        Color res = Color.White;
+        foreach (int key in comboColor.Keys)
+        {
+            if (combo >= key)
+                res = comboColor[key];
+        }
+        return res;
+    }
     static void Main()                          // Main() is the first method that's called when the program is run
     {
         new MyGame().Start();               // Create a "MyGame" and start it
+    }
+
+
+    public void ResetCombo()
+    {
+        combo = 0;
+        comboMultiplier = 1;
+        hud.StartComboAnimation();
     }
 }

@@ -25,8 +25,6 @@ public class Enemy : Entity
     public List<Shape> shapes = new List<Shape>();
 
     public Vector2 velocity = new Vector2(-150f, 0);
-
-    public Sound buzzSound;
     public Enemy(float width, float height, float x, float y, int line) : base(width, height)
     {
         SetEntitySprites("Assets/enemy/Enemy_Fly.png", 4, 1, 0);
@@ -42,17 +40,30 @@ public class Enemy : Entity
 
     public void Score (Shape shape, uint flags = 0)
     {
+        int finalScore = 0;
         if (isDead || shapes.Count == 0)
             return;
         HUD.self.ScoreAnimation();
         if (shape == shapes[0])
-            player.ChangeScore(1);
-        if (shapes.Count == 1)
-            player.ChangeScore(1);
+        {
+            MyGame.self.IncreaseCombo();
+            finalScore += 50;
+        }
+        if ((flags & 0b1) != 0)
+            finalScore += 20;
+
+        if ((flags & 0b10) != 0)
+            finalScore += 50;
+
+        if ((flags & 0b1000) != 0)
+            finalScore += 50;
+
+        finalScore = (int)(finalScore * MyGame.self.comboMultiplier);
+        if (finalScore > 0)
+            player.ChangeScore(finalScore);
     }
     public void Death()
     {
-        Console.WriteLine("enemy died");
         collection[line].Remove(this);
         LateDestroy();
         isDead = true;

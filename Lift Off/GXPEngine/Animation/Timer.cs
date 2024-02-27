@@ -42,7 +42,8 @@ namespace GXPEngine.Animation
         public void Launch()
         {
             enabled = true;
-            TimerManager.Add(this);
+            if (!TimerManager.Contains(this))
+                TimerManager.Add(this);
         }
         public void Pause()
         {
