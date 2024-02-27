@@ -48,11 +48,16 @@ namespace GXPEngine
 			"Additive", () => { GL.BlendFunc(GL.ONE, GL.ONE); }
 		);
 
-		/// <summary>
-		/// This mode can be used  to fill in empty screen parts (e.g. drawing a background after adding lights to the foreground).
-		/// (newColor = spriteColor * (1-oldColorAlpha) + oldColor * oldColorAlpha)
-		/// </summary>
-		public static readonly BlendMode FILLEMPTY = new BlendMode(
+
+        public static readonly BlendMode ALPHABLEND = new BlendMode(
+            "Additive", () => { GL.Enable(GL.BLEND); GL.BlendFunc(GL.SRC_ALPHA, GL.ONE); }
+        );
+
+        /// <summary>
+        /// This mode can be used  to fill in empty screen parts (e.g. drawing a background after adding lights to the foreground).
+        /// (newColor = spriteColor * (1-oldColorAlpha) + oldColor * oldColorAlpha)
+        /// </summary>
+        public static readonly BlendMode FILLEMPTY = new BlendMode(
 			"Fill", () => { GL.BlendFunc(GL.ONE_MINUS_DST_ALPHA, GL.DST_ALPHA); }
 		);
 

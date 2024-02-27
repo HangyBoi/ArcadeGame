@@ -535,26 +535,30 @@ namespace GXPEngine
 				return parent.TransformPoint (ret.x, ret.y);
 			}
 		}
+        public Vector2 TransformVector(Vector2 v)
+        {
+            return TransformPoint(v.x, v.y);
+        }
 
-		//------------------------------------------------------------------------------------------------------------------------
-		//														TransformPoint()
-		//------------------------------------------------------------------------------------------------------------------------
-		/// <summary>
-		/// Transforms a point from this object's local space to the space of a given ancestor.
-		/// If you insert a point relative to this game object, this method will return that same point relative to the given ancestor.
-		/// </summary>
-		/// <param name='x'>
-		/// The x coordinate to transform.
-		/// </param>
-		/// <param name='y'>
-		/// The y coordinate to transform.
-		/// </param>
-		/// <param name='targetParentSpace'>
-		/// This method will return the coordinates of the given point relative to this given game object. 
-		/// If the given game object is not an ancestor of [this] game object, then 
-		/// this argument is ignored, and the returned point will be in screen space.
-		/// </param>
-		public Vector2 TransformPoint(float x, float y, GameObject targetParentSpace) {
+        //------------------------------------------------------------------------------------------------------------------------
+        //														TransformPoint()
+        //------------------------------------------------------------------------------------------------------------------------
+        /// <summary>
+        /// Transforms a point from this object's local space to the space of a given ancestor.
+        /// If you insert a point relative to this game object, this method will return that same point relative to the given ancestor.
+        /// </summary>
+        /// <param name='x'>
+        /// The x coordinate to transform.
+        /// </param>
+        /// <param name='y'>
+        /// The y coordinate to transform.
+        /// </param>
+        /// <param name='targetParentSpace'>
+        /// This method will return the coordinates of the given point relative to this given game object. 
+        /// If the given game object is not an ancestor of [this] game object, then 
+        /// this argument is ignored, and the returned point will be in screen space.
+        /// </param>
+        public Vector2 TransformPoint(float x, float y, GameObject targetParentSpace) {
 			// Implementation note: since the original TransformPoint is a core engine method,
 			// efficiency (avoiding an extra method call) is preferred here at the cost of some code duplication.
 			Vector2 ret = base.TransformPoint(x, y);
@@ -601,25 +605,29 @@ namespace GXPEngine
 		public override Vector2 InverseTransformPoint(float x, float y) {
 			return InverseTransformPoint(x, y, null);
 		}
+		public Vector2 InverseTransformVector (Vector2 v)
+		{
+			return InverseTransformPoint(v.x, v.y);
+		}
 
-		//------------------------------------------------------------------------------------------------------------------------
-		//												InverseTransformPoint()
-		//------------------------------------------------------------------------------------------------------------------------
-		/// <summary>
-		/// Transforms the point from the space of a given ancestor into this object's local space.
-		/// If you insert a point relative to the given ancestor, it will return that same point relative to this GameObject.
-		/// </summary>
-		/// <param name='x'>
-		/// The x coordinate to transform.
-		/// </param>
-		/// <param name='y'>
-		/// The y coordinate to transform.
-		/// </param>
-		/// <param name='fromParentSpace'>
-		/// The coordinates x and y should be given relative to this game object. If the given game object is not an ancestor of 
-		/// [this] game object, then this argument is ignored and x and y are assumed to be in screen space.
-		/// </param>
-		public Vector2 InverseTransformPoint(float x, float y, GameObject fromParentSpace) {
+        //------------------------------------------------------------------------------------------------------------------------
+        //												InverseTransformPoint()
+        //------------------------------------------------------------------------------------------------------------------------
+        /// <summary>
+        /// Transforms the point from the space of a given ancestor into this object's local space.
+        /// If you insert a point relative to the given ancestor, it will return that same point relative to this GameObject.
+        /// </summary>
+        /// <param name='x'>
+        /// The x coordinate to transform.
+        /// </param>
+        /// <param name='y'>
+        /// The y coordinate to transform.
+        /// </param>
+        /// <param name='fromParentSpace'>
+        /// The coordinates x and y should be given relative to this game object. If the given game object is not an ancestor of 
+        /// [this] game object, then this argument is ignored and x and y are assumed to be in screen space.
+        /// </param>
+        public Vector2 InverseTransformPoint(float x, float y, GameObject fromParentSpace) {
 			if (parent == null || parent==fromParentSpace) {
 				return base.InverseTransformPoint(x, y);
 			} else {

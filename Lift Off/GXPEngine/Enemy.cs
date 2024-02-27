@@ -21,7 +21,7 @@ public class Enemy : Entity
 
     public List<Shape> shapes = new List<Shape>();
 
-    public Vector2 velovity = new Vector2(-150f, 0);
+    public Vector2 velocity = new Vector2(-150f, 0);
 
     public Sound buzzSound;
     public Enemy(float width, float height, float x, float y, int line) : base(width, height)
@@ -46,7 +46,7 @@ public class Enemy : Entity
 
     public void UpdateEnemy()
     {
-        Move(velovity.x * Time.deltaTime/1000, velovity.y * Time.deltaTime/1000);
+        Move(velocity.x * Time.deltaTime/1000, velocity.y * Time.deltaTime/1000);
         Animate();
     }
     
@@ -55,23 +55,25 @@ public class Enemy : Entity
         int line = Utils.Random(0, 3);
         Enemy enemy = new Enemy(64, 64, MyGame.self.width / 2 - 200, linesY[line], line);
         collection[line].Add(enemy);
-
-        MyGame.self.AddChild(enemy);
+        MyGame.self.lineLayers[line].AddChild(enemy);
         enemy.GenerateSpells();
-        MagicShape.CastSpell += enemy.Damage;
+        //MagicShape.CastSpell += enemy.Damage;
     }
 
     public void Damage(Shape shape)
     {
-        if (shapes[0] == shape && player.line == line)
+        if (shapes[0] == shape)
+            Damage();
+    }
+
+    public void Damage()
+    {
+        if (shapes.Count > 1)
         {
-            if (shapes.Count > 1)
-            {
-                RemoveSpell();
-            }
-            else
-                Death();
+            RemoveSpell();
         }
+        else
+            Death();
     }
     public bool IsEnemyInFront()
     {
@@ -110,24 +112,23 @@ public class Enemy : Entity
             symbol.x = i * 40 - (shapeCount - 1) * 20;
             symbol.y = 0;
         }
-
-        foreach(var sh in shapes)
-        {
-            Console.WriteLine(sh);
-        }
     }
     public void RemoveSpell()
     {
         shapes.RemoveAt(0);
 
         List<GameObject> spells = spellDisplay.GetChildren();
-        spellDisplay.RemoveChild(spells[0]);
-        spells[0].LateDestroy();
-        spells.RemoveAt(0);
-
-        foreach (GameObject go in spells)
+        if (spells.Count> 0)
         {
-            go.Move(-20, 0);
+
+            spellDisplay.RemoveChild(spells[0]);
+            spells[0].LateDestroy();
+            spells.RemoveAt(0);
+
+            foreach (GameObject go in spells)
+            {
+                go.Move(-20, 0);
+            }
         }
     }
 }

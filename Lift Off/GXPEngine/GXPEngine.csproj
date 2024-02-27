@@ -57,9 +57,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Animation\Animation.cs" />
+    <Compile Include="Animation\SpellVFX.cs" />
     <Compile Include="Animation\SpriteAnimation.cs" />
     <Compile Include="Animation\BombEffect.cs" />
     <Compile Include="ArduinoTracker.cs" />
+    <Compile Include="Background.cs" />
     <Compile Include="Calibrator.cs" />
     <Compile Include="Enemy.cs" />
     <Compile Include="Entity.cs" />

@@ -20,7 +20,7 @@ public class Player : Entity
     public bool isDead = false;
     public bool isWin = false;
     protected bool isFacingRight = true;
-    public Vector2 targetPosition;
+    public Vector3 targetPosition;
     public float smoothingRate = 20f;
 
     Timer attackTimer;
@@ -33,14 +33,14 @@ public class Player : Entity
         SetEntitySprites("Assets/player/B_witch_attack.png", 1, 9, 2);
         SetEntitySprites("Assets/player/B_witch_death.png", 1, 12, 3);
 
-        targetPosition = new Vector2(x, y);
+        targetPosition = new Vector3(x, y, 0);
         SetXY(x, y);
         //SetScaleXY(2, 2);
         
 
         _HP = 3;
-        width = 30;
-        height = 30;
+        this.width = width;
+        this.height = height;
 
         attackTimer = new Timer();
         movementTimer = new Timer();
@@ -58,12 +58,6 @@ public class Player : Entity
             movementTimer.SetLaunch(0.2f);
             moving = true;
             SetEntityState(EntityState.Run);
-
-            if (Input.GetKeyDown(Key.W))
-                SwitchLines(line == 0 ? line : line - 1);
-            if (Input.GetKeyDown(Key.S))
-                SwitchLines(line == 2 ? line : line + 1);
-            
         }
 
         else if (attackTimer.time <= 0.0f && movementTimer.time <= 0.0f)
@@ -79,10 +73,11 @@ public class Player : Entity
             SetEntityState(EntityState.Attack);
         }
     }
-    private void SwitchLines(int line)
+    public void SwitchLines(int line)
     {
         this.line = line;
         targetPosition.y = linesY[line];
+        targetPosition.z = linesZ[line];
     }
 
     //private int GetClosestLine(float playerY, int[] linesY)
@@ -139,6 +134,9 @@ public class Player : Entity
         Animate();
         x = Mathf.CosLerp(x, targetPosition.x, smoothingRate * Time.deltaTime/1000f);
         y = Mathf.CosLerp(y, targetPosition.y, smoothingRate * Time.deltaTime/1000f);
+        float z = ZOrder.GetZ(this);
+        z = Mathf.CosLerp(z, targetPosition.z, smoothingRate * Time.deltaTime / 1000f);
+        ZOrder.SetZ(this, z);
     }
 }
 

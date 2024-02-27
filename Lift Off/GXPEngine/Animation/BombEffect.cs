@@ -18,14 +18,15 @@ namespace GXPEngine.Animation
         public Vector2 endPos;
         public float gravity = 5000f;
         public float airTime;
-        public BombEffect() : base(2f)
+        public BombEffect(GameObject parent) : base(2f)
         {
             bomb = new Sprite("Assets\\bubble.png");
             bomb.scale = 3f;
             bomb.color = 0xff00ff;
 
-            explosion = new ParticleSystem("Assets\\smoke.png",0,0,ParticleSystem.EmitterType.rect,ParticleSystem.Mode.velocity,MyGame.self);
-            explosion.spawnPeriod = 0.0003f;
+            explosion = new ParticleSystem("Assets\\smoke.png",0,0,ParticleSystem.EmitterType.rect,ParticleSystem.Mode.velocity,parent);
+            explosion.spawnPeriod = 0.0003f; 
+            //explosion.blendMode = BlendMode.ADDITIVE;
             explosion.startColor = Color.Magenta;
             explosion.endColor = Color.Gray;
             explosion.startAlpha = 1f;
@@ -42,7 +43,7 @@ namespace GXPEngine.Animation
             explosion.endSpeedDelta = new Vector2(0.1f,0.1f);
             explosion.enabled = false;
 
-            MyGame.self.AddChild(bomb);
+            parent.AddChild(bomb);
             bomb.AddChild(explosion);
         }
         public void SetTrajectory(Vector2 startPos, Vector2 endPos, float airTime)
@@ -62,7 +63,6 @@ namespace GXPEngine.Animation
             base.StartAnimation();
             Console.WriteLine("boop");
             explosion.enabled = false;
-            explosion.worldSpace = MyGame.self;
             //SetTrajectory(new Vector2(-300, -100), new Vector2(300, 0), 0.5f);
             bomb.alpha = 1f;
         }
@@ -72,6 +72,7 @@ namespace GXPEngine.Animation
 
             if (timer.time > 2 - airTime)
             {
+                explosion.SetXY(0, 0);
                 bomb.alpha = 1f;
                 bombVelocity.y += gravity * Time.deltaTime/1000;
                 bomb.y += bombVelocity.y * Time.deltaTime/1000;
@@ -80,12 +81,16 @@ namespace GXPEngine.Animation
             }
             if (timer.time > 2f-airTime-0.03f && timer.time < 2f - airTime)
             {
+                explosion.SetXY(0, 0);
                 explosion.enabled = true;
                 bomb.alpha = 0f;
                 explosion.Update();
             }
             else
-                explosion.enabled=false;
+            {
+                explosion.SetXY(0, 0);
+                explosion.enabled = false;
+            }
         }
         public override void OnAnimationEnd()
         {

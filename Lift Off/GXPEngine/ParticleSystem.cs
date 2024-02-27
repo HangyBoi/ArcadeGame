@@ -35,6 +35,9 @@ namespace GXPEngine
             public float startAlpha;
             public float endAlpha;
 
+            public float startAngle;
+            public float endAngle;
+
             public Vector2 speed = new Vector2 (0,0);
 
             public override void Update()
@@ -67,6 +70,8 @@ namespace GXPEngine
                     (byte)Mathf.Lerp(startColor.R, endColor.R, fac),
                     (byte)Mathf.Lerp(startColor.G, endColor.G, fac),
                     (byte)Mathf.Lerp(startColor.B, endColor.B, fac));
+
+                rotation = Mathf.Lerp(startAngle, endAngle, fac);
                 scale = Mathf.Lerp(startSize, endSize, fac);
                 alpha = Mathf.Lerp(startAlpha, endAlpha, fac);
 
@@ -96,6 +101,7 @@ namespace GXPEngine
             velocity = 2,
         }
         public GameObject worldSpace = null;
+        public BlendMode blendMode = BlendMode.NORMAL;
         public EmitterType emitterType;
         public Mode mode;
         public ParticleSystem(string path, float x, float y, EmitterType emitter, Mode mode = Mode.position, GameObject worldSpace = null) : base (false)
@@ -139,8 +145,12 @@ namespace GXPEngine
         public Vector2 endPos = new Vector2(100,100);
         public Vector2 endPosDelta = new Vector2(100, 100);
 
-        public float startAngularSpeed;
-        public float endAngularSpeed;
+        public float startAngle = 0;
+        public float startAngleDelta = 0;
+        public float endAngle = 0;
+        public float endAngleDelta = 0;
+        public float startAngularSpeed = 0;
+        public float endAngularSpeed = 0;
 
         public Color startColor = Color.White;
         public Color endColor = Color.Blue;
@@ -164,11 +174,14 @@ namespace GXPEngine
             p.lifetime = 0;
 
             p.SetOrigin(p.width / 2, p.height / 2);
-            p.spawnPos = Utils.Random(TransformPoint(startPos.x, startPos.y) - new Vector2(worldSpace.x, worldSpace.y), startPosDelta);
+            p.startAngle = Utils.Random(startAngle - startAngleDelta, startAngle + startAngleDelta);
+            p.endAngle = Utils.Random(endAngle -endAngleDelta, endAngle + endAngleDelta);
+
+            p.spawnPos = Utils.Random(worldSpace.InverseTransformVector(TransformPoint(startPos.x, startPos.y)), startPosDelta);
             p.x = p.spawnPos.x; p.y = p.spawnPos.y;
 
             p.totaltime = Utils.Random(lifetime - lifetimeDelta, lifetime + lifetimeDelta);
-            p.blendMode = BlendMode.NORMAL;
+            p.blendMode = blendMode;
 
             switch(mode)
             {
@@ -208,6 +221,15 @@ namespace GXPEngine
                     SpawnParticle();
                 }
                 
+            }
+        }
+
+        public void DestroyAllParticles()
+        {
+            for (int i=particles.Count - 1; i>=0; i--)
+            {
+                particles[i].LateDestroy();
+                particles.RemoveAt(i);
             }
         }
     }

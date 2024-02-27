@@ -200,7 +200,6 @@ namespace GXPEngine
             if (uniqueShapeList.ContainsKey(playerInput))
             {
                 CastSpell?.Invoke(uniqueShapeList[playerInput]);
-                Console.WriteLine(uniqueShapeList[playerInput]);
             }
             ClearStroke();
         }

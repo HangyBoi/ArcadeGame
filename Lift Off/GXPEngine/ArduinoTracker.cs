@@ -38,7 +38,6 @@ namespace GXPEngine
             port.DtrEnable = true;
             port.Open();
         }
-        //wfgjewhppjf[pkg]
         public static void ReadInput()
         {
             string line = port.ReadLine();

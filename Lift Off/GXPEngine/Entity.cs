@@ -6,7 +6,8 @@ public class Entity : GameObject
     protected bool moving = false;
     public float width, height;
 
-    protected static int[] linesY = { -300, 0, 300 };
+    public static int[] linesY = { -100, 150, 400 };
+    public static int[] linesZ = { 2, 0, -2 };
 
     protected AnimationSprite[] states = new AnimationSprite[4];
     /*
