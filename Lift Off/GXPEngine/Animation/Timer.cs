@@ -26,8 +26,8 @@ namespace GXPEngine.Animation
                     timer.time -= Time.deltaTime / 1000f;
                 else
                 {
-                    timer.OnTimerEnd?.Invoke();
                     timer.Reset();
+                    timer.OnTimerEnd?.Invoke();
                 }
             }
         }

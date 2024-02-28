@@ -155,6 +155,7 @@ public class Player : Entity
         z = Mathf.CosLerp(z, targetPosition.z, smoothingRate * Time.deltaTime / 1000f);
         ZOrder.SetZ(this, z);
     }
+
 }
 
 

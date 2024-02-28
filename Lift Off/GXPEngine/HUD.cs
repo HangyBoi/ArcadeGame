@@ -96,6 +96,7 @@ public class HUD : EasyDraw
 
     public void ComboAnimation()
     {
+        ComboDisplay.scale = 1 + comboAnimationTimer.time;
         ComboDisplay.ClearTransparent();
         if (MyGame.self.comboMultiplier > 1)
         {
@@ -138,6 +139,10 @@ public class HUD : EasyDraw
         if (scoreAnimationTimer.time > 0)
         {
             ScoreAnimation();
+        }
+        if (scoreAnimationTimer.time > 0)
+        {
+            ComboAnimation();
         }
     }
 }

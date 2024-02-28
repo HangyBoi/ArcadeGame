@@ -64,6 +64,7 @@
     <Compile Include="Background.cs" />
     <Compile Include="Button.cs" />
     <Compile Include="Calibrator.cs" />
+    <Compile Include="LeaderBoard.cs" />
     <Compile Include="Enemy.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Force.cs" />

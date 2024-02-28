@@ -56,7 +56,7 @@ namespace GXPEngine
         {
             {Shape.RED, new List<string>()
             {
-                "E","WE","WQ","QW","EW",
+                "W","WE","WQ","QW","EW",
                 "X","XC","XZ","CX","ZX"
             }},
 

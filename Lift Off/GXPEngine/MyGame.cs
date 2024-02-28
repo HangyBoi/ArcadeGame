@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 
 public class MyGame : Game
 {
+    private bool arduinoEnabled = false;
     public static MyGame self;
     public Menu _menu;
     private bool _gameStarted;
@@ -30,6 +31,7 @@ public class MyGame : Game
     public Vector2 cameraTarget = new Vector2(0, 0);
     public Vector2 coinPrevPos;
     public float followSpeed = 5f;
+    public float difficulty = 5;
     public float crossLine = -resolutionX / 2 + 250;
     public Pivot[] lineLayers;
 
@@ -40,17 +42,19 @@ public class MyGame : Game
     public float comboMultiplier = 1;
     public Dictionary<int, float> comboList = new Dictionary<int, float>()
     {
-        {0, 1f },
-        { 3, 1.2f },
-        { 5, 1.5f },
-        { 10, 2f }
+        { 0, 1f },
+        { 5, 1.2f },
+        { 10, 1.5f },
+        { 20, 2f },
+        { 50, 5f }
     };
     public Dictionary<int, Color> comboColor = new Dictionary<int, Color>()
     {
         { 0, Color.White },
-        { 3, Color.FromArgb(0xffff99) },
-        { 5, Color.FromArgb(0xff9933) },
-        { 10, Color.FromArgb(0xff3333) }
+        { 5, Color.FromArgb(0xffff99) },
+        { 10, Color.FromArgb(0xff9933) },
+        { 20, Color.FromArgb(0xff3333) },
+        { 50, Color.Magenta }
     };
 
     protected StateOfTheGame gameState;
@@ -58,12 +62,11 @@ public class MyGame : Game
 
     protected HUD hud;
 
-    private float timeSinceLastSpawn;
-    private float spawnInterval = 3000;
 
     public MyGame() : base(resolutionX, resolutionY, false, pRealWidth:1366, pRealHeight:768, pPixelArt: false)     // Create a window that's 800x600 and NOT fullscreen
     {
-        //ArduinoTracker.ConnectPort();
+        if (arduinoEnabled)
+            ArduinoTracker.ConnectPort();
 
         self = this;
         cam = new Camera(0, 0, resolutionX, resolutionY);
@@ -133,6 +136,7 @@ public class MyGame : Game
         //AddChild(test);
         coin.AddChild(ps);
 
+        PositionParser.OnPlayerInput += Movement;
         PositionParser.OnPlayerInput += DisplayInput;
         PositionParser.OnPlayerInput += MagicShape.AddStroke;
 
@@ -155,6 +159,9 @@ public class MyGame : Game
 
         player = new Player(64, 64, -resolutionX/2 + 200, 0);
         Enemy.player = player;
+        Enemy.spawnTimer.OnTimerEnd += Enemy.SpawnEnemy;
+        Enemy.spawnTimer.SetLaunch(1f);
+
         player.SwitchLines(0);
         ZOrder.Add(player, 0);
 
@@ -165,7 +172,6 @@ public class MyGame : Game
         AddChild(gameState);
         gameState.SetGameState(StateOfTheGame.GameState.Menu);
 
-        timeSinceLastSpawn = Time.time;
         comboTimer = new Timer();
         comboTimer.OnTimerEnd += ResetCombo;
     }
@@ -179,7 +185,8 @@ public class MyGame : Game
     }
     public override void Update()
     {
-        //ArduinoTracker.ReadInput();
+        if (arduinoEnabled)
+            ArduinoTracker.ReadInput();
 
         //float amp = (Mathf.Sin(Time.time / 430f + 128f)) * 0.03f;
         //float period = 200f;
@@ -198,26 +205,7 @@ public class MyGame : Game
         canvas.StrokeWeight(10);
         coin.Animate(0.05f);
 
-
-        if (Input.GetKeyDown(Key.W))
-        {
-
-            if (player.line != 0)
-            {
-                player.SwitchLines(player.line - 1);
-                cameraTarget.y -= 50;
-                cameraTarget.x += 40;
-            }
-        }
-        if (Input.GetKeyDown(Key.S))
-        {
-            if (player.line != 2)
-            {
-                player.SwitchLines(player.line + 1);
-                cameraTarget.y += 50;
-                cameraTarget.x -= 40;
-            }
-        }
+        difficulty = 5 + player.score / 1000f;        
 
         if (Input.GetKey(Key.RIGHT))
             cameraTarget.x += Time.deltaTime;
@@ -273,16 +261,14 @@ public class MyGame : Game
 
         player.UpdatePlayer();
 
-        if (Time.time - timeSinceLastSpawn > spawnInterval)
-        {
-            Enemy.SpawnEnemy();
-            timeSinceLastSpawn = Time.time;
-        }
 
         Enemy.UpdateAll();
 
         hud.HudUpdate();
-
+        if (Input.GetKeyDown(Key.W))
+            Movement(Direction.UP);
+        if (Input.GetKeyDown(Key.S))
+            Movement(Direction.DOWN);
         if (Input.GetKeyDown(Key.T))
             MagicShape.SpellPerform(Shape.RED);
         if (Input.GetKeyDown(Key.Y))
@@ -357,7 +343,7 @@ public class MyGame : Game
         List<Enemy> targets = new List<Enemy>();
         foreach (Enemy target in Enemy.collection[player.line])
         {
-            if (target.shapes[0] == shape)
+            if (target.shapes[0] == shape && !target.isDead)
             {
                 targets.Add(target);
             }
@@ -368,8 +354,17 @@ public class MyGame : Game
             for (int i=0; i<targets.Count; i++) 
             {
                 Enemy target = targets[i];
+                Console.WriteLine(targets.Count);
                 if (i == 1)
                     flags |= 0b10;
+                if (i == 2)
+                {
+                    unchecked 
+                    {
+                        flags &= (uint)~0b10;
+                    }
+                    flags |= 0b100;
+                }    
                 CastMagicBall(shape, target, flags);
             }
         }
@@ -421,5 +416,28 @@ public class MyGame : Game
         combo = 0;
         comboMultiplier = 1;
         hud.StartComboAnimation();
+    }
+
+    public void Movement(Direction dir)
+    {
+        if ( dir == Direction.UP && ArduinoTracker.D[4] == 0)
+        {
+
+            if (player.line != 0)
+            {
+                player.SwitchLines(player.line - 1);
+                cameraTarget.y -= 50;
+                cameraTarget.x += 40;
+            }
+        }
+        if ( dir == Direction.DOWN && ArduinoTracker.D[4] == 0)
+        {
+            if (player.line != 2)
+            {
+                player.SwitchLines(player.line + 1);
+                cameraTarget.y += 50;
+                cameraTarget.x -= 40;
+            }
+        }
     }
 }

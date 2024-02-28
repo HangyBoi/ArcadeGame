@@ -22,6 +22,8 @@ public class Enemy : Entity
     public bool isDead = false;
     public Pivot spellDisplay;
 
+    public static Timer spawnTimer = new Timer();
+
     public List<Shape> shapes = new List<Shape>();
 
     public Vector2 velocity = new Vector2(-150f, 0);
@@ -55,6 +57,9 @@ public class Enemy : Entity
         if ((flags & 0b10) != 0)
             finalScore += 50;
 
+        if ((flags & 0b100) != 0)
+            finalScore += 150;
+
         if ((flags & 0b1000) != 0)
             finalScore += 50;
 
@@ -77,12 +82,23 @@ public class Enemy : Entity
 
     public static void SpawnEnemy()
     {
+        spawnTimer.SetLaunch(10f / Mathf.Log(MyGame.self.difficulty));
+        float rgn = Utils.Random(0f, 1f);
+        Console.WriteLine(Mathf.Clamp((Mathf.Log(MyGame.self.difficulty - 3) - 2f) / 20, 0f, 1f));
+        if (rgn < Mathf.Clamp((Mathf.Log(MyGame.self.difficulty - 3) - 1f)/20, 0f, 1f))
+            SpawnSpecial();
+        else
+            SpawnUsual();
+    }
+    public static void SpawnUsual()
+    {
         int line = Utils.Random(0, 3);
-        Enemy enemy = new Enemy(64, 64, MyGame.self.width / 2 - 200, linesY[line], line);
+        Enemy enemy = new Enemy(64, 64, MyGame.self.width / 2 - 200, linesY[line] + Utils.Random(-50, 50), line);
         collection[line].Add(enemy);
         MyGame.self.lineLayers[line].AddChild(enemy);
         enemy.GenerateSpells();
         //MagicShape.CastSpell += enemy.Damage;
+        spawnTimer.SetLaunch(10f/Mathf.Log(MyGame.self.difficulty));
     }
 
     public void Damage(Shape shape)
@@ -111,9 +127,11 @@ public class Enemy : Entity
 
     public static void UpdateAll()
     {
+        int totalEnemies = 0;
         for (int i = 0; i < 3; i++)
             foreach (var enemy in collection[i])
             {
+                totalEnemies++;
                 enemy.UpdateEnemy();
 
                 //Move to enemy manager
@@ -133,22 +151,32 @@ public class Enemy : Entity
 
                 player.hpDecreased = false;
             }
+        if (totalEnemies == 0)
+        {
+            SpawnEnemy();
+        }
     }
 
     public void GenerateSpells()
     {
         shapes = new List<Shape>();
-        int shapeCount = Utils.Random(1, 4);
+        int shapeCount = (int)Utils.Random(1, Mathf.Clamp(Mathf.Log(MyGame.self.difficulty / 2) * 2 - 1 ,1,6));
 
         for (int i = 0; i < shapeCount; i++)
         {
             Shape sh = (Shape)Utils.Random(0, 4);
             shapes.Add(sh);
-
-            Sprite symbol = new Sprite(MagicShape.spellSprite[(int)sh]);
+        }
+        DrawSpells();
+    }
+    public void DrawSpells()
+    {
+        for (int i = 0; i < shapes.Count; i++)
+        {
+            Sprite symbol = new Sprite(MagicShape.spellSprite[(int)shapes[i]]);
             symbol.SetOrigin(width / 2, height / 2);
             spellDisplay.AddChild(symbol);
-            symbol.x = i * 40 - (shapeCount - 1) * 20;
+            symbol.x = i * 40 - (shapes.Count - 1) * 20;
             symbol.y = 0;
         }
     }
@@ -170,6 +198,56 @@ public class Enemy : Entity
                 {
                     go.Move(-20, 0);
                 }
+            }
+        }
+    }
+
+    public static void SpawnSpecial()
+    {
+        int id = Utils.Random(0, 2);
+
+        if (id == 0)
+        {
+            int line = Utils.Random(0, 3);
+            Enemy enemy = new Enemy(64, 64, MyGame.self.width / 2 - 200, linesY[line] + Utils.Random(-50, 50), line);
+            collection[line].Add(enemy);
+            MyGame.self.lineLayers[line].AddChild(enemy);
+
+            enemy.shapes = new List<Shape>() { Shape.BLUE, Shape.RED, Shape.BLUE, Shape.RED, Shape.BLUE, Shape.RED, Shape.BLUE  };
+
+            enemy.DrawSpells();
+
+        }
+        if (id == 1)
+        {
+            int line = Utils.Random(0, 3);
+            List<Enemy> enemies = new List<Enemy>();
+
+            enemies.Add(new Enemy(64, 64, MyGame.self.width / 2 - 400, linesY[line] + Utils.Random(-50, 50), line));
+            enemies.Add(new Enemy(64, 64, MyGame.self.width / 2 - 300, linesY[line] + Utils.Random(-50, 50), line));
+            enemies.Add(new Enemy(64, 64, MyGame.self.width / 2 - 200, linesY[line] + Utils.Random(-50, 50), line));
+
+            foreach (Enemy enemy in enemies)
+            {
+                collection[line].Add(enemy);
+                MyGame.self.lineLayers[line].AddChild(enemy);
+            }
+            for (int i= 0; i < 3; i++)
+            {
+                Shape sh = (Shape)Utils.Random(0, 4);
+
+                for (int j = 0; j<3; j++)
+                {
+                    if (i<=j)
+                    {
+                        enemies[j].shapes.Add(sh);
+                    }
+                }
+            }
+            foreach (Enemy enemy in enemies)
+            {
+                enemy.shapes.Reverse();
+                enemy.DrawSpells();
             }
         }
     }

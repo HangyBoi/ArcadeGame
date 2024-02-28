@@ -46,7 +46,7 @@ namespace GXPEngine.Animation
                     particles.startColor = Color.FromArgb(0xff3333);
                     break;
                 case Shape.BLUE:
-                    particles.startColor = Color.FromArgb(0x3333ff);
+                    particles.startColor = Color.FromArgb(0x3399ff);
                     break;
                 case Shape.GREEN:
                     particles.startColor = Color.FromArgb(0x33ff33);
@@ -193,14 +193,21 @@ namespace GXPEngine.Animation
                     if ((flags & 0b10) != 0)
                     {
                         Vector2 pos = Utils.Random(new Vector2(enemy.x, enemy.y), new Vector2(50, 100));
-                        PopupAnimation popup = new PopupAnimation("DOUBLE", 0.8f, pos.x, pos.y, MyGame.self.lineLayers[enemy.line], MyGame.self.GetComboColor());
+                        PopupAnimation popup = new PopupAnimation("DOUBLE!", 0.8f, pos.x, pos.y, MyGame.self.lineLayers[enemy.line], MyGame.self.GetComboColor());
+                        popup.StartAnimation();
+                    }
+
+                    if ((flags & 0b100) != 0)
+                    {
+                        Vector2 pos = Utils.Random(new Vector2(enemy.x, enemy.y), new Vector2(50, 100));
+                        PopupAnimation popup = new PopupAnimation("TRIPPLE!!", 0.8f, pos.x, pos.y, MyGame.self.lineLayers[enemy.line], MyGame.self.GetComboColor());
                         popup.StartAnimation();
                     }
 
                     if ((flags & 0b1000) != 0)
                     {
                         Vector2 pos = Utils.Random(new Vector2(enemy.x, enemy.y), new Vector2(50, 100));
-                        PopupAnimation popup = new PopupAnimation("LUCKY SHOT", 0.8f, pos.x, pos.y, MyGame.self.lineLayers[enemy.line], MyGame.self.GetComboColor());
+                        PopupAnimation popup = new PopupAnimation("LUCKY SHOT!", 0.8f, pos.x, pos.y, MyGame.self.lineLayers[enemy.line], MyGame.self.GetComboColor());
                         popup.StartAnimation();
                     }
                 }
