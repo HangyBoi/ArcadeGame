@@ -27,25 +27,24 @@ public class MyGame : Game
     public Sprite background;
     public Sprite HUD;
 
-    public Vector2 cameraTarget = new Vector2(0,0);
+    public Vector2 cameraTarget = new Vector2(0, 0);
     public Vector2 coinPrevPos;
     public float followSpeed = 5f;
-    public float crossLine = -resolutionX/2 + 250;
+    public float crossLine = -resolutionX / 2 + 250;
     public Pivot[] lineLayers;
 
-
     public ParticleSystem.RadialForce playerForce = new ParticleSystem.RadialForce(new Vector2(0, 0));
-
 
     protected StateOfTheGame gameState;
     protected Player player;
 
     protected HUD hud;
+    protected SoundManager soundManager;
 
     private float timeSinceLastSpawn;
     private float spawnInterval = 3000;
 
-    public MyGame() : base(resolutionX, resolutionY, false, pRealWidth:1366, pRealHeight:768, pPixelArt: false)     // Create a window that's 800x600 and NOT fullscreen
+    public MyGame() : base(resolutionX, resolutionY, false, pRealWidth: 1366, pRealHeight: 768, pPixelArt: false)     // Create a window that's 800x600 and NOT fullscreen
     {
         //ArduinoTracker.ConnectPort();
 
@@ -53,7 +52,7 @@ public class MyGame : Game
         cam = new Camera(0, 0, resolutionX, resolutionY);
         coin = new AnimationSprite("Assets/Coins/coin.png", 5, 1);
         canvas = new EasyDraw(new Bitmap(resolutionX, resolutionY), false);
-        canvas.SetXY(-resolutionX/2, -resolutionY/2);
+        canvas.SetXY(-resolutionX / 2, -resolutionY / 2);
 
         layer1 = new Sprite("Assets/backgrounds/layer1.png");
         layer1.SetOrigin(layer1.width / 2, layer1.height / 2);
@@ -71,12 +70,12 @@ public class MyGame : Game
         background.SetOrigin(background.width / 2, background.height / 2);
 
         HUD = new Sprite("Assets/backgrounds/HUD.png");
-        HUD.SetOrigin(HUD.width/2, HUD.height/2);
+        HUD.SetOrigin(HUD.width / 2, HUD.height / 2);
 
         ps = new ParticleSystem("Assets\\bubble.png", 0, 0, ParticleSystem.EmitterType.rect, ParticleSystem.Mode.force, this);
         //ps.forces.Add(playerForce);
         //ps.forces[0].magnitude = 300f;
-        ps.forces.Add(new ParticleSystem.GravityForce(new Vector2(0,1)));
+        ps.forces.Add(new ParticleSystem.GravityForce(new Vector2(0, 1)));
         ps.forces[0].magnitude = 0.003f;
         ps.startAlpha = 0.25f;
 
@@ -135,7 +134,7 @@ public class MyGame : Game
         _gameStarted = false;
 
 
-        player = new Player(64, 64, -resolutionX/2 + 200, 0);
+        player = new Player(64, 64, -resolutionX / 2 + 200, 0);
         Enemy.player = player;
         player.SwitchLines(0);
         ZOrder.Add(player, 0);
@@ -143,14 +142,15 @@ public class MyGame : Game
         hud = new HUD();
         cam.AddChild(hud);
 
+        soundManager = new SoundManager();
+        AddChild(soundManager);
+        soundManager.StartBackMusic();
+
         gameState = new StateOfTheGame();
         AddChild(gameState);
         gameState.SetGameState(StateOfTheGame.GameState.Menu);
 
         timeSinceLastSpawn = Time.time;
-
-
-
     }
 
 
@@ -212,8 +212,8 @@ public class MyGame : Game
         if (Input.GetKey(Key.DOWN))
             cameraTarget.y += Time.deltaTime;
 
-        cam.x = Mathf.Lerp(cam.x, cameraTarget.x, followSpeed * Time.deltaTime/1000);
-        cam.y = Mathf.Lerp(cam.y, cameraTarget.y, followSpeed * Time.deltaTime/1000);
+        cam.x = Mathf.Lerp(cam.x, cameraTarget.x, followSpeed * Time.deltaTime / 1000);
+        cam.y = Mathf.Lerp(cam.y, cameraTarget.y, followSpeed * Time.deltaTime / 1000);
 
         ZOrder.ApplyParallax();
 
@@ -275,10 +275,18 @@ public class MyGame : Game
             MagicShape.SpellPerform(Shape.GREEN);
         if (Input.GetKeyDown(Key.I))
             MagicShape.SpellPerform(Shape.YELLOW);
-        if (Input.GetKeyDown(Key.O))
+        if (Input.GetKeyDown(Key.O) && hud.lightCooldownTimer.time <= 0)
+        {
+            soundManager.Zapping();
             MagicShape.SpellPerform(Shape.LIGHTNING);
-        if (Input.GetKeyDown(Key.P))
+            hud.EnableLightCooldown();
+        } 
+         
+        if (Input.GetKeyDown(Key.P) && hud.bombCooldownTimer.time <= 0)
+        {
             MagicShape.SpellPerform(Shape.BOMB);
+            hud.EnableBombCooldown();
+        }
 
         if (Input.GetKeyDown(Key.TAB))
         {
@@ -334,7 +342,7 @@ public class MyGame : Game
         }
     }
 
-    public void CastMagicBall (Shape shape)
+    public void CastMagicBall(Shape shape)
     {
         Color color = Color.FromArgb(0xffffff);
         List<Enemy> targets = new List<Enemy>();
@@ -354,7 +362,7 @@ public class MyGame : Game
         else
             CastMagicBall(shape, null);
     }
-    public void CastMagicBall (Shape shape, GameObject target)
+    public void CastMagicBall(Shape shape, GameObject target)
     {
         Vector2 playerCoords = lineLayers[player.line].InverseTransformVector(player.TransformPoint(0, 0));
         SpellVFX spell = new SpellVFX(2f, lineLayers[player.line], shape);
