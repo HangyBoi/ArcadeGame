@@ -119,6 +119,7 @@
     <Compile Include="PositionParser.cs" />
     <Compile Include="SDF.cs" />
     <Compile Include="Animation\Timer.cs" />
+    <Compile Include="SoundManager.cs" />
     <Compile Include="StateOfTheGame.cs" />
   </ItemGroup>
   <ItemGroup>

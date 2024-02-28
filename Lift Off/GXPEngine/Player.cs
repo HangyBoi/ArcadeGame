@@ -35,7 +35,6 @@ public class Player : Entity
         targetPosition = new Vector3(x, y, 0);
         SetXY(x, y);
         //SetScaleXY(2, 2);
-        
 
         HP = 3;
         score = 0;
@@ -44,7 +43,6 @@ public class Player : Entity
 
         attackTimer = new Timer();
         movementTimer = new Timer();
-
 
         SetEntityState(EntityState.Idle);
     }
