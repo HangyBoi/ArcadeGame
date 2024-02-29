@@ -177,6 +177,8 @@ namespace GXPEngine.Animation
             if (target is Enemy)
             {
                 Enemy enemy = (Enemy)target;
+                ScreenShake ss = new ScreenShake(0.2f, 20, MyGame.self.cam, 0.01f);
+                ss.StartAnimation();
                 if (enemy.shapes.Count == 1)
                     flags |= 0b1;
                 if (!enemy.isDead)

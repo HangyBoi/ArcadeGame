@@ -20,6 +20,7 @@ public class MyGame : Game
     public AnimationSprite coin;
 
     public Camera cam;
+    public Pivot cameraOrigin;
 
     public EasyDraw canvas;
 
@@ -56,7 +57,6 @@ public class MyGame : Game
         { 50, Color.Magenta }
     };
 
-    protected StateOfTheGame gameState;
     public Player player;
 
     protected HUD hud;
@@ -70,6 +70,8 @@ public class MyGame : Game
 
         self = this;
         cam = new Camera(0, 0, resolutionX, resolutionY);
+        cameraOrigin = new Pivot();
+        cameraOrigin.SetXY(0, 0);
         coin = new AnimationSprite("Assets/Coins/coin.png", 5, 1);
         canvas = new EasyDraw(new Bitmap(resolutionX, resolutionY), false);
         canvas.SetXY(-resolutionX / 2, -resolutionY / 2);
@@ -128,7 +130,6 @@ public class MyGame : Game
         //ZOrder.Add(testz2, 0);
         //ZOrder.Add(layer1, -5);
 
-        AddChild(cam);
         cam.AddChild(HUD);
         cam.AddChild(canvas);
         AddChild(coin);
@@ -139,6 +140,7 @@ public class MyGame : Game
         PositionParser.OnPlayerInput += Movement;
         PositionParser.OnPlayerInput += DisplayInput;
         PositionParser.OnPlayerInput += MagicShape.AddStroke;
+        PositionParser.OnPlayerInput += LeaderBoard.ChooseLetter;
 
         MagicShape.FillShapeList();
         MagicShape.LoadSprites();
@@ -167,26 +169,46 @@ public class MyGame : Game
 
         hud = new HUD();
         cam.AddChild(hud);
+        cameraOrigin.AddChild(cam);
+        AddChild(cameraOrigin);
 
         soundManager = new SoundManager();
         AddChild(soundManager);
         soundManager.StartBackMusic();
 
-        gameState = new StateOfTheGame();
-        AddChild(gameState);
-        gameState.SetGameState(StateOfTheGame.GameState.Menu);
+        StateOfTheGame.SetGameState(StateOfTheGame.GameState.Game);
 
         comboTimer = new Timer();
         comboTimer.OnTimerEnd += ResetCombo;
+
+        LeaderBoard.LoadScores("score.txt");
+        LeaderBoard.display = new EasyDraw(600, 600, false);
+        LeaderBoard.display.SetXY(-500, 0);
+        LeaderBoard.display.SetOrigin(LeaderBoard.display.width / 2, LeaderBoard.display.height / 2);
+        LeaderBoard.SetupKeyboard();
+        LeaderBoard.Disable();
+        LeaderBoard.UpdateDisplay();
     }
 
     public static void DisplayInput(Direction dir)
     {
         Console.WriteLine(dir);
     }
-    public void UpdateFixed()
+    public void Restart()
     {
-    }
+        player.SwitchLines(0);
+        player.score = 0;
+        player.HP = 3;
+        difficulty = 5;
+        combo = 0;
+        hud.SetCombo();
+        hud.SetHp(3);
+        hud.SetScore(0);
+        comboMultiplier = 1;
+        LeaderBoard.Disable();
+        StateOfTheGame.SetGameState(StateOfTheGame.GameState.Game);
+        cameraTarget = new Vector2(0, 0);
+}
     public override void Update()
     {
         if (arduinoEnabled)
@@ -209,19 +231,10 @@ public class MyGame : Game
         canvas.StrokeWeight(10);
         coin.Animate(0.05f);
 
-        difficulty = 5 + player.score / 1000f;        
+        difficulty = 5 + player.score / 1000f;
 
-        if (Input.GetKey(Key.RIGHT))
-            cameraTarget.x += Time.deltaTime;
-        if (Input.GetKey(Key.LEFT))
-            cameraTarget.x -= Time.deltaTime;
-        if (Input.GetKey(Key.UP))
-            cameraTarget.y -= Time.deltaTime;
-        if (Input.GetKey(Key.DOWN))
-            cameraTarget.y += Time.deltaTime;
-
-        cam.x = Mathf.Lerp(cam.x, cameraTarget.x, followSpeed * Time.deltaTime / 1000);
-        cam.y = Mathf.Lerp(cam.y, cameraTarget.y, followSpeed * Time.deltaTime / 1000);
+        cameraOrigin.x = Mathf.Lerp(cameraOrigin.x, cameraTarget.x, followSpeed * Time.deltaTime / 1000);
+        cameraOrigin.y = Mathf.Lerp(cameraOrigin.y, cameraTarget.y, followSpeed * Time.deltaTime / 1000);
 
         ZOrder.ApplyParallax();
 
@@ -235,10 +248,6 @@ public class MyGame : Game
         coin.x = PositionParser.position.x;
         coin.y = PositionParser.position.y;
 
-        if (ArduinoTracker.D[7] == 3)
-        {
-            PositionParser.Calibrate();
-        }
         if (Input.GetKeyDown(Key.E))
         {
             coin.y = 0;
@@ -269,45 +278,71 @@ public class MyGame : Game
         Enemy.UpdateAll();
 
         hud.HudUpdate();
-        if (Input.GetKeyDown(Key.W))
-            Movement(Direction.UP);
-        if (Input.GetKeyDown(Key.S))
-            Movement(Direction.DOWN);
-        if (Input.GetKeyDown(Key.T))
-            MagicShape.SpellPerform(Shape.RED);
-        if (Input.GetKeyDown(Key.Y))
-            MagicShape.SpellPerform(Shape.BLUE);
-        if (Input.GetKeyDown(Key.U))
-            MagicShape.SpellPerform(Shape.GREEN);
-        if (Input.GetKeyDown(Key.I))
-            MagicShape.SpellPerform(Shape.YELLOW);
-        if (Input.GetKeyDown(Key.O) && hud.lightCooldownTimer.time <= 0)
-        {
-            soundManager.Zapping();
-            MagicShape.SpellPerform(Shape.LIGHTNING);
-            hud.EnableLightCooldown();
-        } 
-         
-        if (Input.GetKeyDown(Key.P) && hud.bombCooldownTimer.time <= 0)
-        {
-            MagicShape.SpellPerform(Shape.BOMB);
-            hud.EnableBombCooldown();
-        }
 
-        if (Input.GetKeyDown(Key.TAB))
+        if (StateOfTheGame.currentState == StateOfTheGame.GameState.Game)
         {
-            Console.WriteLine(gameState.currentState);
-        }
+            if (ArduinoTracker.D[7] == 3)
+            {
+                PositionParser.Calibrate();
+            }
 
-        if (Input.GetKeyDown(Key.SPACE))
-        {
-            gameState.SetGameState(StateOfTheGame.GameState.PlayingLevel);
-            Console.WriteLine(gameState.currentState);
+            if (Input.GetKeyDown(Key.W))
+                Movement(Direction.UP);
+            if (Input.GetKeyDown(Key.S))
+                Movement(Direction.DOWN);
+            if (Input.GetKeyDown(Key.T))
+                MagicShape.SpellPerform(Shape.RED);
+            if (Input.GetKeyDown(Key.Y))
+                MagicShape.SpellPerform(Shape.BLUE);
+            if (Input.GetKeyDown(Key.U))
+                MagicShape.SpellPerform(Shape.GREEN);
+            if (Input.GetKeyDown(Key.I))
+                MagicShape.SpellPerform(Shape.YELLOW);
+            if (Input.GetKeyDown(Key.O) && hud.lightCooldownTimer.time <= 0)
+            {
+                soundManager.Zapping();
+                MagicShape.SpellPerform(Shape.LIGHTNING);
+                hud.EnableLightCooldown();
+            }
+
+            if (Input.GetKeyDown(Key.P) && hud.bombCooldownTimer.time <= 0)
+            {
+                MagicShape.SpellPerform(Shape.BOMB);
+                hud.EnableBombCooldown();
+            }
         }
+        else if (StateOfTheGame.currentState == StateOfTheGame.GameState.Typing)
+        {
+
+            LeaderBoard.EnterYourName();
+            if (ArduinoTracker.D[4] == 1 || Input.GetKeyDown(Key.NINE))
+                LeaderBoard.EnterSymbol();
+            if (ArduinoTracker.D[7] == 1 || Input.GetKeyDown(Key.ZERO))
+                LeaderBoard.RemoveSymbol();
+
+            if (Input.GetKeyDown(Key.RIGHT))
+                LeaderBoard.ChooseLetter(Direction.RIGHT);
+            if (Input.GetKeyDown(Key.LEFT))
+                LeaderBoard.ChooseLetter(Direction.LEFT);
+            if (Input.GetKeyDown(Key.UP))
+                LeaderBoard.ChooseLetter(Direction.UP);
+            if (Input.GetKeyDown(Key.DOWN))
+                LeaderBoard.ChooseLetter(Direction.DOWN);
+        }
+        else if (StateOfTheGame.currentState == StateOfTheGame.GameState.GameOver)
+            if (Input.GetKeyDown(Key.ENTER))
+                Restart();
+
+        if (Input.GetKeyDown(Key.H))
+            player.ChangeHP(-3);
+        if (Input.GetKeyDown(Key.J))
+            LeaderBoard.SaveScores("score.txt");
     }
 
     public void SpellEffect(Shape shape)
     {
+        if (StateOfTheGame.currentState != StateOfTheGame.GameState.Game)
+            return;
         switch (shape)
         {
             case Shape.RED:
@@ -338,6 +373,7 @@ public class MyGame : Game
 
                 if (closest != null)
                 {
+                    bombEffect.OnBombHit += closest.OnBombHit;
                     Vector2 enemyCoords = lineLayers[player.line].InverseTransformVector(closest.TransformPoint(0, 0) + closest.velocity * 0.5f);
                     bombEffect.SetTrajectory(playerCoords, enemyCoords, 0.5f);
                 }
@@ -366,7 +402,6 @@ public class MyGame : Game
             for (int i=0; i<targets.Count; i++) 
             {
                 Enemy target = targets[i];
-                Console.WriteLine(targets.Count);
                 if (i == 1)
                     flags |= 0b10;
                 if (i == 2)
@@ -399,7 +434,6 @@ public class MyGame : Game
     {
         comboTimer.SetLaunch(3f);
         combo++;
-        Console.WriteLine("combo: " + combo);
         foreach (int key in comboList.Keys)
         {
             if (combo >= key)
@@ -432,14 +466,16 @@ public class MyGame : Game
 
     public void Movement(Direction dir)
     {
+        if (StateOfTheGame.currentState != StateOfTheGame.GameState.Game)
+            return;
         if ( dir == Direction.UP && ArduinoTracker.D[4] == 0)
         {
 
             if (player.line != 0)
             {
                 player.SwitchLines(player.line - 1);
-                cameraTarget.y -= 50;
-                cameraTarget.x += 40;
+                cameraTarget.y -= 100;
+                cameraTarget.x += 80;
             }
         }
         if ( dir == Direction.DOWN && ArduinoTracker.D[4] == 0)
@@ -447,8 +483,8 @@ public class MyGame : Game
             if (player.line != 2)
             {
                 player.SwitchLines(player.line + 1);
-                cameraTarget.y += 50;
-                cameraTarget.x -= 40;
+                cameraTarget.y += 100;
+                cameraTarget.x -= 80;
             }
         }
     }

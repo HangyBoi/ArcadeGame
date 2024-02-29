@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.Remoting.Messaging;
+using System.Xml.Schema;
 using GXPEngine.OpenGL;
 
 namespace GXPEngine.Core {
@@ -195,6 +196,7 @@ namespace GXPEngine.Core {
 		//														Close()
 		//------------------------------------------------------------------------------------------------------------------------
 		public void Close() {
+			//LeaderBoard.SaveScores("score.txt");
             _soundSystem.Deinit();
             GL.glfwCloseWindow();
 			GL.glfwTerminate();

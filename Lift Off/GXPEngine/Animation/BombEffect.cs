@@ -18,8 +18,12 @@ namespace GXPEngine.Animation
         public Vector2 endPos;
         public float gravity = 5000f;
         public float airTime;
+
+        public delegate void AnimationEvent();
+        public event AnimationEvent OnBombHit;
         public BombEffect(GameObject parent) : base(2f)
         {
+
             bomb = new Sprite("Assets\\bubble.png");
             bomb.scale = 3f;
             bomb.color = 0xff00ff;
@@ -61,7 +65,6 @@ namespace GXPEngine.Animation
         public override void StartAnimation()
         {
             base.StartAnimation();
-            Console.WriteLine("boop");
             explosion.enabled = false;
             //SetTrajectory(new Vector2(-300, -100), new Vector2(300, 0), 0.5f);
             bomb.alpha = 1f;
@@ -82,6 +85,12 @@ namespace GXPEngine.Animation
             if (timer.time > 2f-airTime-0.03f && timer.time < 2f - airTime)
             {
                 explosion.SetXY(0, 0);
+                if (!explosion.enabled)
+                {
+                    OnBombHit?.Invoke();
+                    ScreenShake ss = new ScreenShake(0.3f, 100f, MyGame.self.cam, 0.01f);
+                    ss.StartAnimation();
+                }
                 explosion.enabled = true;
                 bomb.alpha = 0f;
                 explosion.Update();

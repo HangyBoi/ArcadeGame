@@ -12,7 +12,10 @@ namespace GXPEngine.Animation
         public static List<Animation> AnimationManager = new List<Animation>();
         public static void Update()
         {
-            foreach (var animation in AnimationManager)
+            List<Animation> temp = new List<Animation>();
+            foreach (Animation animation in AnimationManager)
+                temp.Add(animation);
+            foreach (Animation animation in temp)
             {
                 animation.UpdateAnimation();
             }

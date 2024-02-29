@@ -2,28 +2,23 @@
 using GXPEngine;
 using GXPEngine.Core;
 
-public class StateOfTheGame : GameObject
+public static class StateOfTheGame
 {
     public enum GameState
     {
-        Menu,
-        PlayingLevel,
-        GameOver
+        Game,
+        GameOver,
+        Typing
     }
 
-    public GameState currentState;
+    public static GameState currentState = GameState.Game;
 
-    public GameState CurrentGameState
+    public static GameState CurrentGameState
     {
         get { return currentState; }
     }
 
-    public StateOfTheGame()
-    {
-        currentState = GameState.Menu;
-    }
-
-    public void SetGameState(GameState newState)
+    public static void SetGameState(GameState newState)
     {
         currentState = newState;
         Console.WriteLine("Change game state to: " + currentState);

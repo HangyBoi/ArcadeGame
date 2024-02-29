@@ -3,11 +3,13 @@ using GXPEngine.Animation;
 using System;
 using System.Drawing;
 using GXPEngine.Animation;
+using System.Runtime.CompilerServices;
 
 public class HUD : EasyDraw
 {
     public static HUD self;
     public Player player;
+    private float offset;
     private int baseTextSize;
 
     private Sprite bombAbilityIcon;
@@ -60,64 +62,11 @@ public class HUD : EasyDraw
         bombCooldownTimer = new Timer();
         lightCooldownTimer = new Timer();
 
-        //SCORE
-        baseTextSize = 20;
-        targetTextSize = baseTextSize; 
 
         scoreAnimationTimer = new Timer();
         hpAnimationTimer = new Timer();
         comboAnimationTimer = new Timer();
-
-        SetXY(-MyGame.self.width / 2, -MyGame.self.height / 2);
-    }
-
-    public void HudUpdate(Player _player)
-    {
-        graphics.Clear(Color.Empty);
-        string hpText = "HP: " + _player.GetHP();
-        Font customFont = new Font(SystemFonts.DefaultFont.FontFamily, (int)(Mathf.Lerp(baseTextSize, targetTextSize, lerpTextTimer)));
-        graphics.DrawString(hpText, customFont, Brushes.White, 0, 0);
-    {
-        AddChild(HPDisplay);
-        AddChild(ScoreDisplay);
-        AddChild(ComboDisplay);
-
-        SetXY(-MyGame.self.width / 2, -MyGame.self.height/ 2);
-    public void EnableLightCooldown()
-    {
-        RemoveChild(lightAbilityIcon);
-        AddChild(greyLightbAbilityIcon);
-
-        lightCooldownTimer.SetLaunch(10f);
-    }
-
-    public void DisableLightCooldown()
-    {
-        RemoveChild(greyLightbAbilityIcon);
-        AddChild(lightAbilityIcon);
-    }
-
-    public void DisableBombCooldown()
-    {
-        RemoveChild(greyBombAbilityIcon);
-        AddChild(bombAbilityIcon);
-    }
-
-    public void HudUpdate(Player _player)
-    {
-        Console.WriteLine(bombCooldownEnabled);
-
-        graphics.Clear(Color.Empty);
-        string hpText = "HP: " + _player.GetHP();
-        Font customFont = new Font(SystemFonts.DefaultFont.FontFamily, (int)(Mathf.Lerp(baseTextSize, targetTextSize, lerpTextTimer)));
-        graphics.DrawString(hpText, customFont, Brushes.White, 0, 0);
-
-        string scoreText = "" + _player.GetScore();
-        graphics.DrawString(scoreText, customFont, Brushes.White, MyGame.self.width / 2, 0);
-
-        if (_player.hpDecreased == true)
-        {
-        HPDisplay = new EasyDraw(500,200);
+        HPDisplay = new EasyDraw(500, 200);
         HPDisplay.TextSize(40);
         HPDisplay.SetXY(0, 0);
         HPDisplay.TextAlign(CenterMode.Center, CenterMode.Center);
@@ -126,7 +75,7 @@ public class HUD : EasyDraw
         string hpText = "HP: " + player.HP;
         HPDisplay.Text(hpText, 250, 100);
 
-        ScoreDisplay = new EasyDraw(500,200);
+        ScoreDisplay = new EasyDraw(500, 200);
         ScoreDisplay.SetOrigin(ScoreDisplay.width / 2, 0);
         ScoreDisplay.TextSize(40);
         ScoreDisplay.SetXY(MyGame.self.width / 2, 0);
@@ -150,6 +99,50 @@ public class HUD : EasyDraw
             ComboDisplay.Fill(MyGame.self.GetComboColor());
             ComboDisplay.Text(comboText, 250, 100);
         }
+
+        AddChild(HPDisplay);
+        AddChild(ScoreDisplay);
+        AddChild(ComboDisplay);
+
+        SetXY(-MyGame.self.width / 2, -MyGame.self.height / 2);
+
+        bombCooldownTimer.OnTimerEnd += DisableBombCooldown;
+        AddChild(bombAbilityIcon);
+        lightCooldownTimer.OnTimerEnd += DisableLightCooldown;
+        AddChild(lightAbilityIcon);
+    }
+    public void EnableBombCooldown()
+    {
+        RemoveChild(bombAbilityIcon);
+        AddChild(greyBombAbilityIcon);
+
+        bombCooldownTimer.SetLaunch(10f);
+    }
+    public void EnableLightCooldown()
+    {
+        RemoveChild(lightAbilityIcon);
+        AddChild(greyLightbAbilityIcon);
+
+        lightCooldownTimer.SetLaunch(10f);
+    }
+
+    public void DisableLightCooldown()
+    {
+        RemoveChild(greyLightbAbilityIcon);
+        AddChild(lightAbilityIcon);
+    }
+
+    public void DisableBombCooldown()
+    {
+        RemoveChild(greyBombAbilityIcon);
+        AddChild(bombAbilityIcon);
+    }
+
+    public void StartHPAnimation()
+    {
+        hpAnimationTimer.SetLaunch(0.3f);
+    }
+    public void StartScoreAnimation()
     {
         scoreAnimationTimer.SetLaunch(0.3f);
     }
@@ -173,22 +166,17 @@ public class HUD : EasyDraw
         ComboDisplay.ClearTransparent();
         if (MyGame.self.comboMultiplier > 1)
         {
-            lerpTextTimer += lerpTextSpeed;
-            if (lerpTextTimer >= 1f)
-            {
-                lerpTextTimer = 0f;
-                isLerpingForward = false;
-                targetTextSize = 60;
-                isLerpingBackward = true;
-            } 
+            string comboText = "x" + MyGame.self.comboMultiplier;
+            ComboDisplay.Text(comboText, 250, 100);
         }
-
+    }
     public void SetCombo()
     {
         ComboDisplay.ClearTransparent();
         if (MyGame.self.comboMultiplier > 1)
         {
             string comboText = "x" + MyGame.self.comboMultiplier;
+            ComboDisplay.Fill(MyGame.self.GetComboColor());
             ComboDisplay.Text(comboText, 250, 100);
         }
     }
@@ -207,6 +195,10 @@ public class HUD : EasyDraw
         HPDisplay.Text(hpText, 250, 100);
         StartHPAnimation();
     }
+    public void HudUpdate()
+    {
+        if (hpAnimationTimer.time > 0)
+        {
             HPAnimation();
         }
         if (scoreAnimationTimer.time > 0)

@@ -116,9 +116,19 @@ public class Player : Entity
     }
     public void ChangeHP(int hp)
     {
-         HP += hp;
+        if (StateOfTheGame.currentState != StateOfTheGame.GameState.Game)
+            return;
+        HP += hp;
+        if (HP < 0)
+            HP = 0;
         hpDecreased = true;
         HUD.self.SetHp(HP);
+        if (HP == 0)
+        {
+            LeaderBoard.AddScore("", score);
+            LeaderBoard.Enable();
+            Enemy.DestroyAllEnemies();
+        }
     }
 
     public int GetScore()

@@ -40,13 +40,13 @@ public class Enemy : Entity
 
     }
 
-    public void Score (Shape shape, uint flags = 0)
+    public void Score(Shape shape, uint flags = 0)
     {
         int finalScore = 0;
         if (isDead || shapes.Count == 0)
             return;
         HUD.self.ScoreAnimation();
-        if (shape == shapes[0])
+        if (shape == shapes[0] || shape == Shape.BOMB || shape == Shape.LIGHTNING)
         {
             MyGame.self.IncreaseCombo();
             finalScore += 50;
@@ -82,9 +82,10 @@ public class Enemy : Entity
 
     public static void SpawnEnemy()
     {
+        if (StateOfTheGame.currentState != StateOfTheGame.GameState.Game)
+            return;
         spawnTimer.SetLaunch(10f / Mathf.Log(MyGame.self.difficulty));
         float rgn = Utils.Random(0f, 1f);
-        Console.WriteLine(Mathf.Clamp((Mathf.Log(MyGame.self.difficulty - 3) - 2f) / 20, 0f, 1f));
         if (rgn < Mathf.Clamp((Mathf.Log(MyGame.self.difficulty - 3) - 1f)/20, 0f, 1f))
             SpawnSpecial();
         else
@@ -145,7 +146,6 @@ public class Enemy : Entity
                 {
                     enemy.Death();
                     player.ChangeHP(-1);
-                    Console.WriteLine(player.HP);
                     break;
                 }
 
@@ -250,5 +250,21 @@ public class Enemy : Entity
                 enemy.DrawSpells();
             }
         }
+    }
+    public static void DestroyAllEnemies()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = collection[i].Count- 1; j >= 0;j--)
+            {
+                Enemy enemy = collection[i][j];
+                enemy.Death();
+            }
+        }
+    }
+    public void OnBombHit ()
+    {
+        Score(Shape.BOMB, 0b1);
+        Death();
     }
 }
