@@ -6,10 +6,11 @@ using GXPEngine.Core;
 using GXPEngine.Animation;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Drawing.Text;
 
 public class MyGame : Game
 {
-    private bool arduinoEnabled = false;
+    private bool arduinoEnabled = true;
     public static MyGame self;
     public Menu _menu;
     private bool _gameStarted;
@@ -38,6 +39,7 @@ public class MyGame : Game
 
     public ParticleSystem.RadialForce playerForce = new ParticleSystem.RadialForce(new Vector2(0, 0));
     public Timer comboTimer;
+    public Timer moveTimer;
     public int combo = 0;
     public float comboMultiplier = 1;
     public Dictionary<int, float> comboList = new Dictionary<int, float>()
@@ -59,15 +61,22 @@ public class MyGame : Game
 
     public Player player;
 
+
     protected HUD hud;
     protected SoundManager soundManager;
 
+    public static PrivateFontCollection collection = new PrivateFontCollection();
+    public static FontFamily fontFamily;
 
     public MyGame() : base(resolutionX, resolutionY, false, pRealWidth: 1366, pRealHeight: 768, pPixelArt: false)     // Create a window that's 800x600 and NOT fullscreen
     {
         if (arduinoEnabled)
             ArduinoTracker.ConnectPort();
 
+        collection = new PrivateFontCollection();
+        collection.AddFontFile("Fonts/CARTNIST.TTF");
+        fontFamily = new FontFamily("Cartoonist Simple", collection);
+        
         self = this;
         cam = new Camera(0, 0, resolutionX, resolutionY);
         cameraOrigin = new Pivot();
@@ -132,8 +141,8 @@ public class MyGame : Game
 
         cam.AddChild(HUD);
         cam.AddChild(canvas);
-        AddChild(coin);
-        coin.visible = false;
+        cam.AddChild(coin);
+        //coin.visible = false;
         //AddChild(test);
         coin.AddChild(ps);
 
@@ -176,18 +185,21 @@ public class MyGame : Game
         AddChild(soundManager);
         soundManager.StartBackMusic();
 
-        StateOfTheGame.SetGameState(StateOfTheGame.GameState.Game);
+        StateOfTheGame.SetGameState(StateOfTheGame.GameState.GameOver);
 
+        moveTimer = new Timer();
         comboTimer = new Timer();
         comboTimer.OnTimerEnd += ResetCombo;
 
         LeaderBoard.LoadScores("score.txt");
         LeaderBoard.display = new EasyDraw(600, 600, false);
+        LeaderBoard.display.TextFont(new Font(MyGame.fontFamily, 40));
         LeaderBoard.display.SetXY(-500, 0);
         LeaderBoard.display.SetOrigin(LeaderBoard.display.width / 2, LeaderBoard.display.height / 2);
         LeaderBoard.SetupKeyboard();
-        LeaderBoard.Disable();
+        LeaderBoard.Enable();
         LeaderBoard.UpdateDisplay();
+
     }
 
     public static void DisplayInput(Direction dir)
@@ -205,7 +217,7 @@ public class MyGame : Game
         hud.SetHp(3);
         hud.SetScore(0);
         comboMultiplier = 1;
-        LeaderBoard.Disable();
+        //LeaderBoard.Disable();
         StateOfTheGame.SetGameState(StateOfTheGame.GameState.Game);
         cameraTarget = new Vector2(0, 0);
 }
@@ -276,6 +288,7 @@ public class MyGame : Game
 
 
         Enemy.UpdateAll();
+        LeaderBoard.Update();
 
         hud.HudUpdate();
 
@@ -300,22 +313,19 @@ public class MyGame : Game
                 MagicShape.SpellPerform(Shape.YELLOW);
             if (Input.GetKeyDown(Key.O) && hud.lightCooldownTimer.time <= 0)
             {
-                soundManager.Zapping();
                 MagicShape.SpellPerform(Shape.LIGHTNING);
-                hud.EnableLightCooldown();
             }
 
             if (Input.GetKeyDown(Key.P) && hud.bombCooldownTimer.time <= 0)
             {
                 MagicShape.SpellPerform(Shape.BOMB);
-                hud.EnableBombCooldown();
             }
         }
         else if (StateOfTheGame.currentState == StateOfTheGame.GameState.Typing)
         {
 
             LeaderBoard.EnterYourName();
-            if (ArduinoTracker.D[4] == 1 || Input.GetKeyDown(Key.NINE))
+            if (Input.GetKeyDown(Key.NINE))
                 LeaderBoard.EnterSymbol();
             if (ArduinoTracker.D[7] == 1 || Input.GetKeyDown(Key.ZERO))
                 LeaderBoard.RemoveSymbol();
@@ -330,7 +340,7 @@ public class MyGame : Game
                 LeaderBoard.ChooseLetter(Direction.DOWN);
         }
         else if (StateOfTheGame.currentState == StateOfTheGame.GameState.GameOver)
-            if (Input.GetKeyDown(Key.ENTER))
+            if (Input.GetKeyDown(Key.ENTER) || ArduinoTracker.D[4] == 1)
                 Restart();
 
         if (Input.GetKeyDown(Key.H))
@@ -362,9 +372,14 @@ public class MyGame : Game
                 canvas.Clear(255, 255, 0, 10);
                 break;
             case Shape.LIGHTNING:
+                soundManager.Zapping();
+                hud.EnableLightCooldown();
                 canvas.Clear(255, 255, 255, 10);
+                LightningAnimation lightning = new LightningAnimation(1f);
+                lightning.StartAnimation();
                 break;
             case Shape.BOMB:
+                hud.EnableBombCooldown();
                 canvas.Clear(128, 0, 128, 10);
                 BombEffect bombEffect = new BombEffect(lineLayers[player.line]);
 
@@ -466,11 +481,13 @@ public class MyGame : Game
 
     public void Movement(Direction dir)
     {
+        if (moveTimer.time > 0)
+            return;
         if (StateOfTheGame.currentState != StateOfTheGame.GameState.Game)
             return;
-        if ( dir == Direction.UP && ArduinoTracker.D[4] == 0)
+        if ((dir == Direction.UP || dir == Direction.UP_RIGHT || dir == Direction.UP_LEFT) && ArduinoTracker.D[4] == 0)
         {
-
+            moveTimer.SetLaunch(0.3f);
             if (player.line != 0)
             {
                 player.SwitchLines(player.line - 1);
@@ -478,8 +495,9 @@ public class MyGame : Game
                 cameraTarget.x += 80;
             }
         }
-        if ( dir == Direction.DOWN && ArduinoTracker.D[4] == 0)
+        if ( (dir == Direction.DOWN || dir == Direction.DOWN_RIGHT || dir == Direction.DOWN_LEFT) && ArduinoTracker.D[4] == 0)
         {
+            moveTimer.SetLaunch(0.3f);
             if (player.line != 2)
             {
                 player.SwitchLines(player.line + 1);

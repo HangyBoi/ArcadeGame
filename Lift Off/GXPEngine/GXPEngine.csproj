@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Animation\Animation.cs" />
+    <Compile Include="Animation\LightningAnimation.cs" />
     <Compile Include="Animation\ScreenShake.cs" />
     <Compile Include="Animation\SpellVFX.cs" />
     <Compile Include="Animation\PopupAnimation.cs" />

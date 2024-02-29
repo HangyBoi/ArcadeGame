@@ -34,7 +34,6 @@ public class HUD : EasyDraw
 
     public HUD() : base(MyGame.self.width, MyGame.self.height, false)
     {
-
         bombAbilityIcon = new Sprite("Assets/abilities/bomb.png");
         greyBombAbilityIcon = new Sprite("Assets/abilities/greyBomb.png");
         bombCooldownText = "";
@@ -67,7 +66,7 @@ public class HUD : EasyDraw
         hpAnimationTimer = new Timer();
         comboAnimationTimer = new Timer();
         HPDisplay = new EasyDraw(500, 200);
-        HPDisplay.TextSize(40);
+        HPDisplay.TextFont(new Font(MyGame.fontFamily,40));
         HPDisplay.SetXY(0, 0);
         HPDisplay.TextAlign(CenterMode.Center, CenterMode.Center);
 
@@ -76,19 +75,18 @@ public class HUD : EasyDraw
         HPDisplay.Text(hpText, 250, 100);
 
         ScoreDisplay = new EasyDraw(500, 200);
+        ScoreDisplay.TextFont(new Font(MyGame.fontFamily, 40));
         ScoreDisplay.SetOrigin(ScoreDisplay.width / 2, 0);
-        ScoreDisplay.TextSize(40);
         ScoreDisplay.SetXY(MyGame.self.width / 2, 0);
         ScoreDisplay.TextAlign(CenterMode.Center, CenterMode.Center);
-
         ScoreDisplay.ClearTransparent();
         string scoreText = "" + player.score;
         ScoreDisplay.Text(scoreText, 250, 100);
 
 
         ComboDisplay = new EasyDraw(500, 200);
+        ComboDisplay.TextFont(new Font(MyGame.fontFamily, 60));
         ComboDisplay.SetOrigin(ScoreDisplay.width / 2, 0);
-        ComboDisplay.TextSize(60);
         ComboDisplay.SetXY(MyGame.self.width / 2 + 300, 0);
         ComboDisplay.TextAlign(CenterMode.Center, CenterMode.Center);
 

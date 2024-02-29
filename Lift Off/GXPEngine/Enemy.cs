@@ -4,6 +4,7 @@ using GXPEngine.Core;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Xml.Schema;
 
 public class Enemy : Entity
@@ -29,14 +30,30 @@ public class Enemy : Entity
     public Vector2 velocity = new Vector2(-150f, 0);
     public Enemy(float width, float height, float x, float y, int line) : base(width, height)
     {
-        SetEntitySprites("Assets/enemy/Enemy_Fly.png", 4, 1, 0);
+        int variation = Utils.Random(0, 3);
+        switch (variation)
+        {
+            case 0:
+                SetEntitySprites("Assets/enemy/enemy1.png", 8, 1, 0);
+                states[0].SetScaleXY(0.5f, 0.5f);
+                break;
+            case 1:
+                SetEntitySprites("Assets/enemy/enemy2.png", 8, 1, 0);
+                states[0].SetScaleXY(0.5f, 0.5f);
+                break;
+            case 2:
+                SetEntitySprites("Assets/enemy/enemy3.png", 9, 1, 0);
+                states[0].SetScaleXY(0.5f, 0.5f);
+                break;
+        }
         //SetScaleXY(3,3);
         this.x = x;
         this.y = y;
         this.line = line;
         spellDisplay = new Pivot();
         AddChild(spellDisplay);
-        spellDisplay.y = -height / 2 - 10;
+        spellDisplay.x = 0;
+        spellDisplay.y = 0;
 
     }
 
@@ -94,7 +111,7 @@ public class Enemy : Entity
     public static void SpawnUsual()
     {
         int line = Utils.Random(0, 3);
-        Enemy enemy = new Enemy(64, 64, MyGame.self.width / 2 - 200, linesY[line] + Utils.Random(-50, 50), line);
+        Enemy enemy = new Enemy(512, 512, MyGame.self.width / 2 - 200, linesY[line] + Utils.Random(-50, 50), line);
         collection[line].Add(enemy);
         MyGame.self.lineLayers[line].AddChild(enemy);
         enemy.GenerateSpells();
@@ -160,7 +177,7 @@ public class Enemy : Entity
     public void GenerateSpells()
     {
         shapes = new List<Shape>();
-        int shapeCount = (int)Utils.Random(1, Mathf.Clamp(Mathf.Log(MyGame.self.difficulty / 2) * 2 - 1 ,1,6));
+        int shapeCount = (int)Utils.Random(1, Mathf.Clamp(Mathf.Log(MyGame.self.difficulty / 2) * 2 ,1,6));
 
         for (int i = 0; i < shapeCount; i++)
         {
@@ -173,11 +190,10 @@ public class Enemy : Entity
     {
         for (int i = 0; i < shapes.Count; i++)
         {
-            Sprite symbol = new Sprite(MagicShape.spellSprite[(int)shapes[i]]);
-            symbol.SetOrigin(width / 2, height / 2);
+            Sprite symbol = new Sprite(MagicShape.spellSprite[(int)shapes[i]],false);
             spellDisplay.AddChild(symbol);
-            symbol.x = i * 40 - (shapes.Count - 1) * 20;
-            symbol.y = 0;
+            symbol.SetOrigin(symbol.width / 2, symbol.height / 2);
+            symbol.SetXY(i * 40 - (shapes.Count - 1) * 20, -height/8);
         }
     }
     public void RemoveSpell()

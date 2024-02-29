@@ -46,8 +46,9 @@ public class Entity : GameObject
     public void SetEntitySprites(string path, int cols, int rows, int id)
     {
         states[id] = new AnimationSprite(path, cols, rows, -1, false, false);
-        states[id].SetOrigin(width/2, height/2);
+        states[id].SetOrigin(states[id].width / 2, states[id].height /2);
         AddChild(states[id]);
+        states[id].SetXY(0, 0);
     }
 
     // Sets the current state of the entity

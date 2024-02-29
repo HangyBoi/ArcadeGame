@@ -17,17 +17,26 @@ namespace GXPEngine
             public int score;
         }
         public static List<Score> scores = new List<Score>();
+        private static int[,] symbols = new int[,]
+
+        {
+            {65,66,67,68,69,70 },
+            {71,72,73,74,75,76 },
+            {77,78,79,80,81,82 },
+            {83,84,85,86,87,88 },
+            {89,90,32,46,0x232B,0x2386}
+        };
         public static EasyDraw display;
-        private static string currentName;
         private static int currentScore;
         public static char symbol;
+        public static int X = 0, Y = 0;
 
         private static EasyDraw[,] keyboard;
         public static GameObject Keyboard;
 
         public static void SetupKeyboard()
         {
-            symbol = 'A';
+            symbol = (char)65;
             Keyboard = new GameObject();
             Keyboard.SetXY(200, -200);
             MyGame.self.cam.AddChild(Keyboard);
@@ -37,17 +46,16 @@ namespace GXPEngine
                 for (int y=0; y<5; y++)
                 {
                     keyboard[x, y] = new EasyDraw(90, 90);
+                    keyboard[x, y].TextFont(new Font(MyGame.fontFamily, 40));
                     keyboard[x, y].SetXY(x * 100, y * 100);
                     keyboard[x, y].SetOrigin(keyboard[x, y].width/2, keyboard[x, y].height / 2);
                     keyboard[x, y].TextAlign(CenterMode.Center, CenterMode.Center);
-                    keyboard[x, y].TextSize(40);
-                    if (x == 5 && y == 4)
-                        keyboard[x, y].TextSize(20);
                     LightDownKey(x, y);
                     Keyboard.AddChild(keyboard[x, y]);
 
                 }
             }
+            LightUpKey(0, 0);
         }
         public static void Enable()
         {
@@ -65,18 +73,12 @@ namespace GXPEngine
         public static void LightDownKey(int x, int y)
         {
             keyboard[x, y].Clear(50, 50, 50, 50);
-            if (x == 5 && y == 4)
-                keyboard[x, y].Text("DONE", keyboard[x, y].width / 2, keyboard[x, y].height / 2);
-            else
-                keyboard[x, y].Text("" + (char)(65 + y * 6 + x), keyboard[x, y].width / 2, keyboard[x, y].height / 2);
+            keyboard[x, y].Text("" + (char)(symbols[y,x]), keyboard[x, y].width / 2, keyboard[x, y].height / 2);
         }
         public static void LightUpKey(int x, int y)
         {
             keyboard[x, y].Clear(200, 200, 50, 50);
-            if (x == 5 && y == 4)
-                keyboard[x, y].Text("DONE", keyboard[x, y].width / 2, keyboard[x, y].height / 2);
-            else
-                keyboard[x, y].Text("" + (char)(65 + y * 6 + x), keyboard[x, y].width / 2, keyboard[x, y].height / 2);
+            keyboard[x, y].Text("" + (char)(symbols[y, x]), keyboard[x, y].width / 2, keyboard[x, y].height / 2);
         }
         public static void LoadScores(string path)
         {
@@ -119,7 +121,7 @@ namespace GXPEngine
         public static void UpdateDisplay()
         {
             display.Clear(0,0,0,50);
-            display.TextSize(15);
+            display.TextFont(new Font(MyGame.fontFamily, 15));
             display.TextAlign(CenterMode.Center, CenterMode.Min);
             for (int i = 0; i < scores.Count; i++)
             {
@@ -188,11 +190,17 @@ namespace GXPEngine
 
         public static void EnterSymbol()
         {
-            if (symbol == '^')
+            if (X == 5 && Y == 4)
             {
                 ConfirmName();
                 return;
-            }    
+            }
+
+            if (X == 4 && Y == 4)
+            {
+                RemoveSymbol();
+                return;
+            }
             Score temp = scores[currentScore];
             temp.name += symbol;
             scores[currentScore] = temp;
@@ -221,22 +229,20 @@ namespace GXPEngine
         }
         public static void ChooseLetter( Direction dir )
         {
-            int x = ((int)symbol - 65) % 6;
-            int y = ((int)symbol - 65) / 6;
-            LightDownKey(x, y);
+            LightDownKey(X, Y);
             switch ( dir )
             {
                 case Direction.LEFT:
                 case Direction.UP_LEFT:
                 case Direction.DOWN_LEFT:
-                    if (x>0)
-                        x --;
+                    if (X>0)
+                        X--;
                     break;
                 case Direction.RIGHT:
                 case Direction.UP_RIGHT:
                 case Direction.DOWN_RIGHT:
-                    if (x < 5)
-                        x++;
+                    if (X < 5)
+                        X++;
                     break;
             }
             switch (dir )
@@ -244,19 +250,65 @@ namespace GXPEngine
                 case Direction.DOWN:
                 case Direction.DOWN_RIGHT:
                 case Direction.DOWN_LEFT:
-                    if (y < 4)
-                        y++;
+                    if (Y < 4)
+                        Y++;
                     break;
                 case Direction.UP:
                 case Direction.UP_RIGHT:
                 case Direction.UP_LEFT:
-                    if (y > 0)
-                        y--;
+                    if (Y > 0)
+                        Y--;
                     break;
             }
-            symbol = (char)(65 + y * 6 + x);
+            symbol = (char)symbols[Y, X];
 
-            LightUpKey(x, y);
+            LightUpKey(X, Y);
+        }
+        public static void Update()
+        {
+            if (StateOfTheGame.currentState == StateOfTheGame.GameState.Game)
+            {
+                display.x = Mathf.Lerp(display.x, 0, 10 * Time.deltaTime / 1000f);
+                display.y = Mathf.Lerp(display.y, 1000, 10 * Time.deltaTime / 1000f);
+                display.alpha = Mathf.Lerp(display.alpha, 0, 5f * Time.deltaTime / 1000f);
+
+                Keyboard.x = Mathf.Lerp(Keyboard.x, 0, 10 * Time.deltaTime / 1000f);
+                Keyboard.y = Mathf.Lerp(Keyboard.y, 1000, 10 * Time.deltaTime / 1000f);
+                foreach (EasyDraw ed in keyboard)
+                {
+                    ed.alpha = Mathf.Lerp(ed.alpha, 0, 5f * Time.deltaTime / 1000f);
+                }
+            }
+
+            if (StateOfTheGame.currentState == StateOfTheGame.GameState.Typing)
+            {
+                display.x = Mathf.Lerp(display.x, -500, 10 * Time.deltaTime / 1000f);
+                display.y = Mathf.Lerp(display.y, 0, 10 * Time.deltaTime / 1000f);
+                display.alpha = Mathf.Lerp(display.alpha, 1, 5f * Time.deltaTime / 1000f);
+
+                Keyboard.x = Mathf.Lerp(Keyboard.x, 200, 10 * Time.deltaTime / 1000f);
+                Keyboard.y = Mathf.Lerp(Keyboard.y, -200, 10 * Time.deltaTime / 1000f);
+
+                foreach (EasyDraw ed in keyboard)
+                {
+                    ed.alpha = Mathf.Lerp(ed.alpha, 1, 5f * Time.deltaTime / 1000f);
+                }
+            }
+
+            if (StateOfTheGame.currentState == StateOfTheGame.GameState.GameOver)
+            {
+                display.x = Mathf.Lerp(display.x, 0, 10 * Time.deltaTime / 1000f);
+                display.y = Mathf.Lerp(display.y, 0, 10 * Time.deltaTime / 1000f);
+                display.alpha = Mathf.Lerp(display.alpha, 1, 5f * Time.deltaTime / 1000f);
+
+                Keyboard.x = Mathf.Lerp(Keyboard.x, 1000, 10 * Time.deltaTime / 1000f);
+                Keyboard.y = Mathf.Lerp(Keyboard.y, -200, 10 * Time.deltaTime / 1000f);
+
+                foreach (EasyDraw ed in keyboard)
+                {
+                    ed.alpha = Mathf.Lerp(ed.alpha, 0, 5f * Time.deltaTime / 1000f);
+                }
+            }
         }
     }
 }

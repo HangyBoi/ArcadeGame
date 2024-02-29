@@ -74,7 +74,9 @@ namespace GXPEngine
                 "XQ","XWQ",
                 "XCE","CXE","CXW",
                 "XZQ","ZXQ",
-                "ZAQ","CDE"
+                "ZAQ","CDE",
+                "ZXW"
+                
             }},
 
 
@@ -86,7 +88,10 @@ namespace GXPEngine
                 "QX","WQX","QWX",
                 "EXC","ECX","WXC","WCX",
                 "QXZ","QZX","WZX","WXZ",
-                "QAZ","EDC"
+                "QAZ","EDC",
+                "EDCX","ECXC","DEDC",
+                "WEDCX","WECX","EWCX","WEXC","EWXC",
+                "EDX","DEX"
             }},
 
             {Shape.LIGHTNING, new List<string>()
@@ -160,7 +165,7 @@ namespace GXPEngine
                 "XAQW","XAWQ","XAWE","XAEW",
                 "CAQW","CAWQ","CAWE","CAEW",
 
-                "WEDCX"
+                "XEDCW",
             }},
 
             
