@@ -25,6 +25,8 @@ public class Player : Entity
     Timer attackTimer;
     Timer movementTimer;
 
+    SoundManager soundManager;
+
     public Player(float width, float height, float x = 0, float y = 0) : base (width, height)
     {
         SetEntitySprites("Assets/player/B_witch_idle.png", 1, 6, 0);
@@ -43,6 +45,8 @@ public class Player : Entity
 
         attackTimer = new Timer();
         movementTimer = new Timer();
+
+        soundManager = new SoundManager();
 
         SetEntityState(EntityState.Idle);
     }
@@ -122,9 +126,11 @@ public class Player : Entity
         if (HP < 0)
             HP = 0;
         hpDecreased = true;
+        soundManager.PlayerHurtSoundPlay();
         HUD.self.SetHp(HP);
         if (HP == 0)
         {
+            soundManager.GameOverSoundPlay();
             LeaderBoard.AddScore("", score);
             LeaderBoard.Enable();
             Enemy.DestroyAllEnemies();

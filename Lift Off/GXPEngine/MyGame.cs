@@ -300,7 +300,6 @@ public class MyGame : Game
                 MagicShape.SpellPerform(Shape.YELLOW);
             if (Input.GetKeyDown(Key.O) && hud.lightCooldownTimer.time <= 0)
             {
-                soundManager.Zapping();
                 MagicShape.SpellPerform(Shape.LIGHTNING);
                 hud.EnableLightCooldown();
             }
@@ -348,24 +347,30 @@ public class MyGame : Game
             case Shape.RED:
                 CastMagicBall(shape);
                 canvas.Clear(255, 0, 0, 10);
+                soundManager.SpellCastSoundPlay();
                 break;
             case Shape.GREEN:
                 CastMagicBall(shape);
                 canvas.Clear(0, 255, 0, 10);
+                soundManager.SpellCastSoundPlay();
                 break;
             case Shape.BLUE:
                 CastMagicBall(shape);
                 canvas.Clear(0, 0, 255, 10);
+                soundManager.SpellCastSoundPlay();
                 break;
             case Shape.YELLOW:
                 CastMagicBall(shape);
                 canvas.Clear(255, 255, 0, 10);
+                soundManager.SpellCastSoundPlay();
                 break;
             case Shape.LIGHTNING:
                 canvas.Clear(255, 255, 255, 10);
+                soundManager.ZappingCastSoundPlay();
                 break;
             case Shape.BOMB:
                 canvas.Clear(128, 0, 128, 10);
+                soundManager.BombCastSoundPlay();
                 BombEffect bombEffect = new BombEffect(lineLayers[player.line]);
 
                 Enemy closest = player.FindClosestEnemy(player.line);
