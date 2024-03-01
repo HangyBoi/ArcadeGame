@@ -10,15 +10,9 @@ namespace GXPEngine
 {
     public static class PopupSprites
     {
-        public static Sprite kill;
-        public static Sprite doubleHit;
-        public static Sprite plus50;
 
         public static void Setup()
         {
-            kill = CreateLabel("KILL");
-            doubleHit = CreateLabel("DOUBLE!");
-            plus50 = CreateLabel("+50");
         }
         public static Sprite CreateLabel (string text)
         {

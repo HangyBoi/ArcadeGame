@@ -1,5 +1,7 @@
 ﻿using GXPEngine;
 using GXPEngine.Core;
+using System;
+using System.Collections.Generic;
 
 public class Entity : GameObject
 {
@@ -9,7 +11,7 @@ public class Entity : GameObject
     public static int[] linesY = { -100, 150, 400 };
     public static int[] linesZ = { 2, 0, -2 };
 
-    protected AnimationSprite[] states = new AnimationSprite[4];
+    protected List<AnimationSprite> states = new List<AnimationSprite>();
     /*
      * Index 0: Idle, 
      * Index 1: Run, 
@@ -17,10 +19,7 @@ public class Entity : GameObject
      * Index 3: Death
      */
 
-    private float[] AnimationSpeed = new float[]
-    {
-        10f,10f,10f,10f
-    };
+    private List<float> AnimationSpeed = new List<float>();
 
     // Represents the state of the entity (Idle, Run, Attack)
     public enum EntityState
@@ -31,31 +30,38 @@ public class Entity : GameObject
         Death    // The entity is dying
     }
 
-    public EntityState currentState;
+    public int currentState;
+    private int bufferedState = 0;
+    private int bufferedFrame = 0;
+    private bool animateOnce = false;
 
     public Entity(float width, float height) : base(true)
     {
         this.width = width;
         this.height = height;
         
-        SetEntityState(EntityState.Idle);
+        SetEntityState(0);
     }
 
     // Sets the sprites for different entity states
 
-    public void SetEntitySprites(string path, int cols, int rows, int id)
+    public void SetEntitySprites(string path, int cols, int rows, int id, float speed = 15f)
     {
-        states[id] = new AnimationSprite(path, cols, rows, -1, false, false);
-        states[id].SetOrigin(states[id].width / 2, states[id].height /2);
-        AddChild(states[id]);
-        states[id].SetXY(0, 0);
+        AnimationSprite anim = new AnimationSprite(path, cols, rows, -1, false, false);
+        AnimationSpeed.Add(speed);
+        anim.SetOrigin(anim.width / 2, anim.height /2);
+        AddChild(anim);
+        anim.SetXY(0, 0);
+        states.Insert(id,anim);
+        anim.SetFrame(0);
+        anim.SetCycle(0, anim.frameCount);
     }
 
     // Sets the current state of the entity
-    public void SetEntityState(EntityState newState)
+    public void SetEntityState(int newState, int startFrame = 0)
     {
 
-        if (states[(int)newState] == null)
+        if (states.Count <= newState)
         {
             // Handle the null sprites
             return;
@@ -65,25 +71,39 @@ public class Entity : GameObject
         {
             state.visible = false;
         }
-        states[(int)newState].visible = true;
+        states[newState].visible = true;
 
         if (currentState == newState)
             return;
 
-        states[(int)newState].SetFrame(0);
-        states[(int)newState].SetCycle(0, states[(int)newState].frameCount);
 
         currentState = newState;
+        states[newState].SetFrame(startFrame);
 
     }
     public void Animate()
     {
-        states[(int)currentState].Animate(AnimationSpeed[(int)currentState] * Time.deltaTime / 1000);
+        states[currentState].Animate(AnimationSpeed[currentState] * Time.deltaTime / 1000);
+        if (animateOnce && states[currentState].currentFrame == states[currentState].frameCount - 1)
+        {
+            Console.WriteLine(states[currentState].currentFrame);
+            animateOnce = false;
+            SetEntityState(bufferedState);
+            states[currentState].currentFrame = bufferedFrame;
+        }
     }
 
     // Gets the current state of the entity
-    public EntityState GetCurrentState()
+    public int GetCurrentState()
     {
         return currentState;
+    }
+    public void AnimateOnce(int state, int returnState, int returnFrame = 0)
+    {
+        bufferedState = returnState;
+        bufferedFrame = returnFrame;
+        SetEntityState(state);
+        animateOnce = true;
+
     }
 }

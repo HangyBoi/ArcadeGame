@@ -9,7 +9,7 @@ namespace GXPEngine.Animation
 {
     public class Animation
     {
-        public static List<Animation> AnimationManager = new List<Animation>();
+        private static List<Animation> AnimationManager = new List<Animation>();
         public static void Update()
         {
             List<Animation> temp = new List<Animation>();
@@ -23,7 +23,7 @@ namespace GXPEngine.Animation
 
         public Timer timer = new Timer(false);
         public float duration;
-        public bool isRunning;
+        private bool isRunning;
 
         public Animation(float duration)
         {

@@ -9,6 +9,7 @@ namespace GXPEngine
     {
         internal class Particle : Sprite
         {
+            public Func<float, float> alphaCurve;
             public ParticleSystem ps;
             public Mode mode = Mode.position;
             public Particle(Texture2D texture) : base(texture, false)
@@ -73,7 +74,10 @@ namespace GXPEngine
 
                 rotation = Mathf.Lerp(startAngle, endAngle, fac);
                 scale = Mathf.Lerp(startSize, endSize, fac);
-                alpha = Mathf.Lerp(startAlpha, endAlpha, fac);
+                if (alphaCurve == null)
+                    alpha = Mathf.Lerp(startAlpha, endAlpha, fac);
+                else
+                    alpha = alphaCurve(fac);
 
                 if (totaltime < lifetime)
                 {
@@ -104,6 +108,8 @@ namespace GXPEngine
         public BlendMode blendMode = BlendMode.NORMAL;
         public EmitterType emitterType;
         public Mode mode;
+
+        public Func<float,float> alphaCurve = null;
         public ParticleSystem(string path, float x, float y, EmitterType emitter, Mode mode = Mode.position, GameObject worldSpace = null) : base (false)
         {
             forces = new List<Force>();
@@ -199,10 +205,14 @@ namespace GXPEngine
             }
             p.startColor = startColor; p.endColor = endColor;
             p.startAlpha = startAlpha; p.endAlpha = endAlpha;
+            p.alphaCurve = alphaCurve;
             p.startSize = Utils.Random(startSize- startSizeDelta, startSize + startSizeDelta); p.endSize = Utils.Random(endSize - endSizeDelta, endSize + endSizeDelta);
 
             p.SetColor(startColor.R, startColor.G, startColor.B);
-            p.alpha = startAlpha;
+            if (p.alphaCurve != null)
+                p.alpha = alphaCurve(0);
+            else
+                p.alpha = startAlpha;
             p.scale = startSize;
         }
         public override void Update()

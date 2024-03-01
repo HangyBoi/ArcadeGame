@@ -57,15 +57,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Animation\Animation.cs" />
+    <Compile Include="Animation\FlashEffect.cs" />
     <Compile Include="Animation\LightningAnimation.cs" />
+    <Compile Include="Animation\LightningEffect.cs" />
     <Compile Include="Animation\ScreenShake.cs" />
     <Compile Include="Animation\SpellVFX.cs" />
     <Compile Include="Animation\PopupAnimation.cs" />
     <Compile Include="Animation\BombEffect.cs" />
     <Compile Include="ArduinoTracker.cs" />
     <Compile Include="Background.cs" />
-    <Compile Include="Button.cs" />
-    <Compile Include="Calibrator.cs" />
     <Compile Include="LeaderBoard.cs" />
     <Compile Include="Enemy.cs" />
     <Compile Include="Entity.cs" />
@@ -76,7 +76,6 @@
     <Compile Include="GXPEngine\Core\Vector3.cs" />
     <Compile Include="HUD.cs" />
     <Compile Include="MagicShape.cs" />
-    <Compile Include="Menu.cs" />
     <Compile Include="ParticleSystem.cs" />
     <Compile Include="MyGame.cs" />
     <Compile Include="GXPEngine\Core\Canvas.cs" />

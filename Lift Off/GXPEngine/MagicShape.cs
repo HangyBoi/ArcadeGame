@@ -52,7 +52,7 @@ namespace GXPEngine
             {Direction.DOWN_LEFT, 'Z'},
             {Direction.LEFT, 'A'},
         };
-        public static Dictionary<Shape, List<string>> shapeList = new Dictionary<Shape, List<string>>()
+        private static Dictionary<Shape, List<string>> shapeList = new Dictionary<Shape, List<string>>()
         {
             {Shape.RED, new List<string>()
             {
@@ -170,7 +170,7 @@ namespace GXPEngine
 
             
         };
-        public static Dictionary<string, Shape> uniqueShapeList = new Dictionary<string, Shape>();
+        private static Dictionary<string, Shape> uniqueShapeList = new Dictionary<string, Shape>();
 
         public static Bitmap[] spellSprite;
         public static void LoadSprites()

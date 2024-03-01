@@ -6,3 +6,9 @@ C:\Users\pchyo\Documents\!Saxion\GXP\ShaderTest\Unnamed Jellyfish Game\GXPEngine
 C:\Users\pchyo\Documents\!Saxion\GXP\ShaderTest\Unnamed Jellyfish Game\GXPEngine\obj\x86\Release\GXPEngine.csproj.AssemblyReference.cache
 C:\Users\pchyo\Documents\!Saxion\GXP\ShaderTest\Unnamed Jellyfish Game\GXPEngine\obj\x86\Release\GXPEngine.csproj.CoreCompileInputs.cache
 C:\Users\pchyo\Documents\!Saxion\GXP\ShaderTest\Unnamed Jellyfish Game\GXPEngine\obj\x86\Release\GXPEngine.exe
+C:\Users\pchyo\Documents\GitHub\ArcadeGame\Lift Off\GXPEngine\bin\Release\GXPEngine.exe.config
+C:\Users\pchyo\Documents\GitHub\ArcadeGame\Lift Off\GXPEngine\bin\Release\GXPEngine.exe
+C:\Users\pchyo\Documents\GitHub\ArcadeGame\Lift Off\GXPEngine\obj\x86\Release\GXPEngine.csproj.AssemblyReference.cache
+C:\Users\pchyo\Documents\GitHub\ArcadeGame\Lift Off\GXPEngine\obj\x86\Release\GXPEngine.csproj.SuggestedBindingRedirects.cache
+C:\Users\pchyo\Documents\GitHub\ArcadeGame\Lift Off\GXPEngine\obj\x86\Release\GXPEngine.csproj.CoreCompileInputs.cache
+C:\Users\pchyo\Documents\GitHub\ArcadeGame\Lift Off\GXPEngine\obj\x86\Release\GXPEngine.exe

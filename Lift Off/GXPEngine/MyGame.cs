@@ -10,10 +10,9 @@ using System.Drawing.Text;
 
 public class MyGame : Game
 {
-    private bool arduinoEnabled = true;
+    private bool arduinoEnabled = false;
     public static MyGame self;
-    public Menu _menu;
-    private bool _gameStarted;
+
     private static int resolutionX = 1920;
     private static int resolutionY = 1080;
 
@@ -23,14 +22,16 @@ public class MyGame : Game
     public Camera cam;
     public Pivot cameraOrigin;
 
-    public EasyDraw canvas;
+    public EasyDraw flash;
 
     public Sprite layer1;
     public Sprite line1, line2, line3;
     public Sprite background;
     public Sprite HUD;
+    public Sprite test;
 
     public Vector2 cameraTarget = new Vector2(0, 0);
+    public float cameraTargetSize = 1;
     public Vector2 coinPrevPos;
     public float followSpeed = 5f;
     public float difficulty = 5;
@@ -38,8 +39,12 @@ public class MyGame : Game
     public Pivot[] lineLayers;
 
     public ParticleSystem.RadialForce playerForce = new ParticleSystem.RadialForce(new Vector2(0, 0));
+
     public Timer comboTimer;
     public Timer moveTimer;
+    public Timer spellTimer;
+    public Shape currentSpell;
+
     public int combo = 0;
     public float comboMultiplier = 1;
     public Dictionary<int, float> comboList = new Dictionary<int, float>()
@@ -63,7 +68,7 @@ public class MyGame : Game
 
 
     protected HUD hud;
-    protected SoundManager soundManager;
+    public SoundManager soundManager;
 
     public static PrivateFontCollection collection = new PrivateFontCollection();
     public static FontFamily fontFamily;
@@ -81,9 +86,14 @@ public class MyGame : Game
         cam = new Camera(0, 0, resolutionX, resolutionY);
         cameraOrigin = new Pivot();
         cameraOrigin.SetXY(0, 0);
+
         coin = new AnimationSprite("Assets/Coins/coin.png", 5, 1);
-        canvas = new EasyDraw(new Bitmap(resolutionX, resolutionY), false);
-        canvas.SetXY(-resolutionX / 2, -resolutionY / 2);
+
+        flash = new EasyDraw(new Bitmap(resolutionX, resolutionY), false);
+        flash.blendMode = BlendMode.ALPHABLEND;
+        flash.SetXY(-resolutionX / 2, -resolutionY / 2);
+        flash.Clear(Color.White);
+        flash.alpha = 0;
 
         layer1 = new Sprite("Assets/backgrounds/layer1.png");
         layer1.SetOrigin(layer1.width / 2, layer1.height / 2);
@@ -103,6 +113,7 @@ public class MyGame : Game
         HUD = new Sprite("Assets/backgrounds/HUD.png");
         HUD.SetOrigin(HUD.width / 2, HUD.height / 2);
 
+
         ps = new ParticleSystem("Assets\\bubble.png", 0, 0, ParticleSystem.EmitterType.rect, ParticleSystem.Mode.force, this);
         //ps.forces.Add(playerForce);
         //ps.forces[0].magnitude = 300f;
@@ -120,7 +131,7 @@ public class MyGame : Game
         AddChild(background);
 
         ZOrder.z0 = 10;
-        ZOrder.camera = cam;
+        ZOrder.SetCamera(cameraOrigin);
 
         ZOrder.Add(layer1, 50);
         ZOrder.Add(line1, Entity.linesZ[0]);
@@ -128,8 +139,9 @@ public class MyGame : Game
         ZOrder.Add(line3, Entity.linesZ[2]);
 
         line1.scaleX = 1.2f;
-        line2.y = 300;
-        line3.y = 500;
+        line1.SetXY(-200, 0);
+        line2.SetXY(-100, 300);
+        line3.SetXY(-100, 500);
         lineLayers = new Pivot[]
         {
             ZOrder.zLayer[line1],
@@ -139,8 +151,10 @@ public class MyGame : Game
         //ZOrder.Add(testz2, 0);
         //ZOrder.Add(layer1, -5);
 
+        GXPEngine.Environment.Setup();
+
         cam.AddChild(HUD);
-        cam.AddChild(canvas);
+        cam.AddChild(flash);
         cam.AddChild(coin);
         //coin.visible = false;
         //AddChild(test);
@@ -153,19 +167,15 @@ public class MyGame : Game
 
         MagicShape.FillShapeList();
         MagicShape.LoadSprites();
-        MagicShape.CastSpell += SpellEffect;
+        MagicShape.CastSpell += CastSpell;
 
         PopupSprites.Setup();
-        Calibrator.Setup();
 
+        test = new Sprite("Assets/grass.png");
+        //cam.AddChild(test);    
+        test.origin = new Vector2(0.5f, 0.5f);
+        Console.WriteLine(test.origin);
 
-        //test.origin = new Vector2(0.5f, 0.5f);
-        //Console.WriteLine(test.origin);
-
-        _menu = new Menu(this);
-        AddChild(_menu);
-
-        _gameStarted = false;
 
 
         player = new Player(64, 64, -resolutionX / 2 + 200, 0);
@@ -189,7 +199,10 @@ public class MyGame : Game
 
         moveTimer = new Timer();
         comboTimer = new Timer();
+        spellTimer = new Timer();
+
         comboTimer.OnTimerEnd += ResetCombo;
+        spellTimer.OnTimerEnd += SpellEffect;
 
         LeaderBoard.LoadScores("score.txt");
         LeaderBoard.display = new EasyDraw(600, 600, false);
@@ -211,6 +224,7 @@ public class MyGame : Game
         player.SwitchLines(0);
         player.score = 0;
         player.HP = 3;
+        player.SetEntityState(0);
         difficulty = 5;
         combo = 0;
         hud.SetCombo();
@@ -220,33 +234,36 @@ public class MyGame : Game
         //LeaderBoard.Disable();
         StateOfTheGame.SetGameState(StateOfTheGame.GameState.Game);
         cameraTarget = new Vector2(0, 0);
+        cameraTargetSize = 1;
 }
     public override void Update()
     {
         if (arduinoEnabled)
             ArduinoTracker.ReadInput();
 
-        //float amp = (Mathf.Sin(Time.time / 430f + 128f)) * 0.03f;
-        //float period = 200f;
-        //test.transform = new float[,] {
-        //    { amp * Mathf.Sin(Time.time/period) + 1f , Mathf.Cos(Time.time/period) * amp},
-        //    { Mathf.Cos(Time.time/period) * amp, -amp * Mathf.Sin(Time.time/period) + 1f}
-        //};
+        float amp = (Mathf.Sin(Time.time / 430f + 128f)) * 0.03f;
+        float period = 200f;
+        test.transform = new float[,] {
+            { amp * Mathf.Sin(Time.time/period) + 1f , Mathf.Cos(Time.time/period) * amp},
+            { Mathf.Cos(Time.time/period) * amp, -amp * Mathf.Sin(Time.time/period) + 1f}
+        };
         PositionParser.angularDeviation += PositionParser.angularVelocityDeviation * Time.deltaTime;
         PositionParser.GetData();
         PositionParser.UpdateCoordinates();
         PositionParser.FilterMovement();
 
-        Calibrator.Update();
+        //GXPEngine.Environment.Update();
 
         playerForce.affectorPos = new Vector2(cam.x, cam.y);
-        canvas.StrokeWeight(10);
+        flash.StrokeWeight(10);
         coin.Animate(0.05f);
 
         difficulty = 5 + player.score / 1000f;
 
         cameraOrigin.x = Mathf.Lerp(cameraOrigin.x, cameraTarget.x, followSpeed * Time.deltaTime / 1000);
         cameraOrigin.y = Mathf.Lerp(cameraOrigin.y, cameraTarget.y, followSpeed * Time.deltaTime / 1000);
+
+        cameraOrigin.scale = Mathf.Lerp(cameraOrigin.scale, cameraTargetSize, followSpeed * Time.deltaTime / 1000);
 
         ZOrder.ApplyParallax();
 
@@ -276,7 +293,7 @@ public class MyGame : Game
         if (ArduinoTracker.D[4] == 2)
         {
             ps.enabled = false;
-            canvas.ClearTransparent();
+            //flash.ClearTransparent();
             MagicShape.SpellAttempt();
         }
 
@@ -294,6 +311,16 @@ public class MyGame : Game
 
         if (StateOfTheGame.currentState == StateOfTheGame.GameState.Game)
         {
+
+            if (Input.GetKey(Key.RIGHT))
+                cameraTarget.x += 200 * Time.deltaTime / 1000f;
+            if (Input.GetKey(Key.LEFT))
+                cameraTarget.x -= 200 * Time.deltaTime / 1000f;
+            if (Input.GetKey(Key.UP))
+                cameraTarget.y -= 200 * Time.deltaTime / 1000f;
+            if (Input.GetKey(Key.DOWN))
+                cameraTarget.y += 200 * Time.deltaTime / 1000f;
+
             if (ArduinoTracker.D[7] == 3)
             {
                 PositionParser.Calibrate();
@@ -349,44 +376,81 @@ public class MyGame : Game
             LeaderBoard.SaveScores("score.txt");
     }
 
-    public void SpellEffect(Shape shape)
+    public void CastSpell(Shape shape)
     {
+        currentSpell = shape;
+
+        player.StopMovement();
+
+        switch (shape)
+        {
+            case Shape.RED:
+            case Shape.GREEN:
+            case Shape.BLUE:
+            case Shape.YELLOW:
+
+                spellTimer.SetLaunch(0.2f);
+                player.AnimateOnce(Utils.Random(3, 7), 0);
+                break;
+
+            case Shape.LIGHTNING:
+
+                spellTimer.SetLaunch(0.2f);
+                player.AnimateOnce(10, 0);
+                break;
+
+            case Shape.BOMB:
+
+                spellTimer.SetLaunch(0.4f);
+                player.AnimateOnce(11, 0);
+                break;
+        }
+    }
+    public void SpellEffect()
+    {
+        Shape shape = currentSpell;
         if (StateOfTheGame.currentState != StateOfTheGame.GameState.Game)
             return;
+        FlashEffect fe = new FlashEffect(0.5f, flash, Color.White, Color.White, 0.1f, 0f);
         switch (shape)
         {
             case Shape.RED:
                 CastMagicBall(shape);
-                canvas.Clear(255, 0, 0, 10);
+                fe.SetStartColor(Color.Red);
+                fe.SetEndColor(Color.Red);
+                fe.StartAnimation();
                 soundManager.SpellCastSoundPlay();
                 break;
             case Shape.GREEN:
                 CastMagicBall(shape);
-                canvas.Clear(0, 255, 0, 10);
+                fe.SetStartColor(Color.LightGreen);
+                fe.SetEndColor(Color.LightGreen);
+                fe.StartAnimation();
                 soundManager.SpellCastSoundPlay();
                 break;
             case Shape.BLUE:
                 CastMagicBall(shape);
-                canvas.Clear(0, 0, 255, 10);
+                fe.SetStartColor(Color.Blue);
+                fe.SetEndColor(Color.Blue);
+                fe.StartAnimation();
                 soundManager.SpellCastSoundPlay();
                 break;
             case Shape.YELLOW:
                 CastMagicBall(shape);
-                canvas.Clear(255, 255, 0, 10);
+                fe.SetStartColor(Color.Yellow);
+                fe.SetEndColor(Color.Yellow);
+                fe.StartAnimation();
                 soundManager.SpellCastSoundPlay();
                 break;
             case Shape.LIGHTNING:
-                soundManager.Zapping();
+                soundManager.ZappingCastSoundPlay();
                 hud.EnableLightCooldown();
-                canvas.Clear(255, 255, 255, 10);
                 LightningAnimation lightning = new LightningAnimation(1f);
                 lightning.StartAnimation();
                 soundManager.ZappingCastSoundPlay();
                 break;
             case Shape.BOMB:
                 hud.EnableBombCooldown();
-                canvas.Clear(128, 0, 128, 10);
-                soundManager.BombCastSoundPlay();
                 BombEffect bombEffect = new BombEffect(lineLayers[player.line]);
 
                 Enemy closest = player.FindClosestEnemy(player.line);
@@ -404,6 +468,7 @@ public class MyGame : Game
                 break;
         }
     }
+
 
     public void CastMagicBall(Shape shape)
     {
@@ -491,24 +556,26 @@ public class MyGame : Game
             return;
         if (StateOfTheGame.currentState != StateOfTheGame.GameState.Game)
             return;
-        if ((dir == Direction.UP || dir == Direction.UP_RIGHT || dir == Direction.UP_LEFT) && ArduinoTracker.D[4] == 0)
+        if ((dir == Direction.UP || dir == Direction.UP_RIGHT || dir == Direction.UP_LEFT || Input.GetKeyDown(Key.UP) && ArduinoTracker.D[4] == 0))
         {
             moveTimer.SetLaunch(0.3f);
             if (player.line != 0)
             {
                 player.SwitchLines(player.line - 1);
-                cameraTarget.y -= 100;
-                cameraTarget.x += 80;
+                cameraTarget.y -= 40;
+                cameraTarget.x += 30;
+                cameraTargetSize /= 1.1f;
             }
         }
-        if ( (dir == Direction.DOWN || dir == Direction.DOWN_RIGHT || dir == Direction.DOWN_LEFT) && ArduinoTracker.D[4] == 0)
+        if ( (dir == Direction.DOWN || dir == Direction.DOWN_RIGHT || dir == Direction.DOWN_LEFT || Input.GetKeyDown(Key.DOWN) && ArduinoTracker.D[4] == 0))
         {
             moveTimer.SetLaunch(0.3f);
             if (player.line != 2)
             {
                 player.SwitchLines(player.line + 1);
-                cameraTarget.y += 100;
-                cameraTarget.x -= 80;
+                cameraTarget.y += 40;
+                cameraTarget.x -= 30;
+                cameraTargetSize *= 1.1f;
             }
         }
     }

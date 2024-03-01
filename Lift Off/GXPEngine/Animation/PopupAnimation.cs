@@ -13,7 +13,7 @@ namespace GXPEngine.Animation
     public class PopupAnimation : Animation
     {
         public Sprite sprite;
-        public GameObject worldSpace;
+        private GameObject worldSpace;
 
 
         public PopupAnimation (Sprite sprite, float duration, GameObject parent = null, GameObject worldSpace = null, Color color = default) : base(duration)

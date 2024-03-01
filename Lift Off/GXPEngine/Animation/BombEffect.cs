@@ -24,9 +24,9 @@ namespace GXPEngine.Animation
         public BombEffect(GameObject parent) : base(2f)
         {
 
-            bomb = new Sprite("Assets\\bubble.png");
-            bomb.scale = 3f;
-            bomb.color = 0xff00ff;
+            bomb = new Sprite("Assets\\bomb.png");
+            bomb.scale = 0.3f;
+            bomb.SetOrigin(bomb.width/2 - 30, bomb.height/2 + 30);
 
             explosion = new ParticleSystem("Assets\\smoke.png",0,0,ParticleSystem.EmitterType.rect,ParticleSystem.Mode.velocity,parent);
             explosion.spawnPeriod = 0.0003f; 
@@ -60,6 +60,7 @@ namespace GXPEngine.Animation
 
             bombVelocity.x = (endPos.x - startPos.x) / airTime;
             bombVelocity.y = (endPos.y - startPos.y) / airTime - gravity * airTime / 2;
+
             
         }
         public override void StartAnimation()
@@ -80,6 +81,7 @@ namespace GXPEngine.Animation
                 bombVelocity.y += gravity * Time.deltaTime/1000;
                 bomb.y += bombVelocity.y * Time.deltaTime/1000;
                 bomb.x += bombVelocity.x * Time.deltaTime/1000;
+                bomb.rotation += 1000f * Time.deltaTime / 1000f;
 
             }
             if (timer.time > 2f-airTime-0.03f && timer.time < 2f - airTime)
@@ -88,8 +90,11 @@ namespace GXPEngine.Animation
                 if (!explosion.enabled)
                 {
                     OnBombHit?.Invoke();
+                    FlashEffect fe = new FlashEffect(0.5f, MyGame.self.flash, Color.Magenta, Color.Magenta, 0.5f, 0f);
+                    fe.StartAnimation();
                     ScreenShake ss = new ScreenShake(0.3f, 100f, MyGame.self.cam, 0.01f);
                     ss.StartAnimation();
+                    MyGame.self.soundManager.BombCastSoundPlay();
                 }
                 explosion.enabled = true;
                 bomb.alpha = 0f;

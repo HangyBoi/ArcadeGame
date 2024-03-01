@@ -16,7 +16,7 @@ namespace GXPEngine.Animation
 
         public float time;
 
-        public static List<Timer> TimerManager = new List<Timer>();
+        private static List<Timer> TimerManager = new List<Timer>();
         public static void Update()
         {
             for (int i = TimerManager.Count() - 1; i>=0; i--)

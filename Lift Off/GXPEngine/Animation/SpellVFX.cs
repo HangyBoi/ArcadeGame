@@ -24,14 +24,14 @@ namespace GXPEngine.Animation
 
 
         public float x, y;
-        public ParticleSystem particles;
+        private ParticleSystem particles;
         public GameObject target;
         //public Sprite bomb;
-        public Vector2 startPos;
-        public Vector2 velocity;
-        public Vector2 endPos;
-        public float gravity = 5000f;
-        Shape shape;
+        private Vector2 startPos;
+        private Vector2 velocity;
+        private Vector2 endPos;
+        private float gravity = 5000f;
+        private Shape shape;
         public SpellVFX(float time, GameObject parent, Shape shape, uint flogs = 0) : base(time)
         {
             flags = flogs;

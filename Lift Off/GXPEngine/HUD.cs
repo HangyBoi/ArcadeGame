@@ -24,6 +24,9 @@ public class HUD : EasyDraw
     public Timer lightCooldownTimer;
     public bool lightCooldownEnabled;
 
+    private int hp;
+    private int newHP;
+
     public EasyDraw HPDisplay;
     public EasyDraw ScoreDisplay;
     public EasyDraw ComboDisplay;
@@ -42,8 +45,8 @@ public class HUD : EasyDraw
         greyLightbAbilityIcon = new Sprite("Assets/abilities/greyLigthning.png");
         lightCooldownText = "";
 
-        float _scaleX = 0.25f;
-        float _scaleY = 0.25f;
+        float _scaleX = 0.5f;
+        float _scaleY = 0.5f;
         offset = 35;
         self = this;
         player = MyGame.self.player;
@@ -60,19 +63,30 @@ public class HUD : EasyDraw
 
         bombCooldownTimer = new Timer();
         lightCooldownTimer = new Timer();
-
-
         scoreAnimationTimer = new Timer();
         hpAnimationTimer = new Timer();
         comboAnimationTimer = new Timer();
+
+        hpAnimationTimer.OnTimerEnd += HPAnimationEnd;
+
         HPDisplay = new EasyDraw(500, 200);
         HPDisplay.TextFont(new Font(MyGame.fontFamily,40));
         HPDisplay.SetXY(0, 0);
         HPDisplay.TextAlign(CenterMode.Center, CenterMode.Center);
+        hp = 3;
+        newHP = 3;
+
+        for (int i=0; i<player.HP; i++)
+        {
+            Sprite heart = new Sprite("Assets/heart.png");
+            heart.scale = 0.5f;
+            heart.SetXY(i * heart.width + heart.width / 2, heart.height / 2);
+            heart.SetOrigin(heart.width/2, heart.height/2);
+            HPDisplay.AddChild(heart);
+        }
+
 
         HPDisplay.ClearTransparent();
-        string hpText = "HP: " + player.HP;
-        HPDisplay.Text(hpText, 250, 100);
 
         ScoreDisplay = new EasyDraw(500, 200);
         ScoreDisplay.TextFont(new Font(MyGame.fontFamily, 40));
@@ -136,9 +150,22 @@ public class HUD : EasyDraw
         AddChild(bombAbilityIcon);
     }
 
-    public void StartHPAnimation()
+    public void StartHPAnimation(int newHP)
     {
         hpAnimationTimer.SetLaunch(0.3f);
+        this.newHP = newHP;
+
+        if (newHP > hp) 
+        {
+            for (int i = hp; i < newHP; i++)
+            {
+                Sprite heart = new Sprite("Assets/heart.png");
+                heart.scale = 0.5f;
+                heart.SetXY(i * heart.width + heart.width / 2, heart.height / 2);
+                heart.SetOrigin(heart.width / 2, heart.height / 2);
+                HPDisplay.AddChild(heart);
+            }
+        }
     }
     public void StartScoreAnimation()
     {
@@ -152,6 +179,31 @@ public class HUD : EasyDraw
     public void HPAnimation()
     {
         HPDisplay.scale = 1 + hpAnimationTimer.time;
+        if (hp > newHP)
+        {
+            for (int i=0; i<hp-newHP; i++)
+            {
+                HPDisplay.GetChildren()[HPDisplay.GetChildCount() - i-1].scale = hpAnimationTimer.time*0.5f/0.3f;
+            }
+        }
+
+        if (hp < newHP)
+        {
+            for (int i = 0; i < newHP - hp; i++)
+            {
+                HPDisplay.GetChildren()[HPDisplay.GetChildCount() - i - 1].scale = Mathf.Clamp((1 - hpAnimationTimer.time),0,1)/2;
+            }
+        }
+    }
+
+    public void HPAnimationEnd()
+    {
+        if (hp > newHP)
+            for (int i = 0; i < hp - newHP; i++)
+            {
+                HPDisplay.RemoveChild(HPDisplay.GetChildren()[HPDisplay.GetChildCount() - 1]);
+            }
+        hp = newHP;
     }
     public void ScoreAnimation()
     {
@@ -188,10 +240,7 @@ public class HUD : EasyDraw
     }
     public void SetHp(int hp)
     {
-        string hpText = "HP: " + hp;
-        HPDisplay.ClearTransparent();
-        HPDisplay.Text(hpText, 250, 100);
-        StartHPAnimation();
+        StartHPAnimation(hp);
     }
     public void HudUpdate()
     {

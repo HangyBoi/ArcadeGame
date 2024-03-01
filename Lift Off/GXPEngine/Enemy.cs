@@ -230,7 +230,7 @@ public class Enemy : Entity
         if (id == 0)
         {
             int line = Utils.Random(0, 3);
-            Enemy enemy = new Enemy(64, 64, MyGame.self.width / 2 - 200, linesY[line] + Utils.Random(-50, 50), line);
+            Enemy enemy = new Enemy(512, 512, MyGame.self.width / 2 - 200, linesY[line] + Utils.Random(-50, 50), line);
             collection[line].Add(enemy);
             MyGame.self.lineLayers[line].AddChild(enemy);
 
@@ -244,9 +244,9 @@ public class Enemy : Entity
             int line = Utils.Random(0, 3);
             List<Enemy> enemies = new List<Enemy>();
 
-            enemies.Add(new Enemy(64, 64, MyGame.self.width / 2 - 400, linesY[line] + Utils.Random(-50, 50), line));
-            enemies.Add(new Enemy(64, 64, MyGame.self.width / 2 - 300, linesY[line] + Utils.Random(-50, 50), line));
-            enemies.Add(new Enemy(64, 64, MyGame.self.width / 2 - 200, linesY[line] + Utils.Random(-50, 50), line));
+            enemies.Add(new Enemy(512, 512, MyGame.self.width / 2 - 400, linesY[line] + Utils.Random(-50, 50), line));
+            enemies.Add(new Enemy(512, 512, MyGame.self.width / 2 - 300, linesY[line] + Utils.Random(-50, 50), line));
+            enemies.Add(new Enemy(512, 512, MyGame.self.width / 2 - 200, linesY[line] + Utils.Random(-50, 50), line));
 
             foreach (Enemy enemy in enemies)
             {
